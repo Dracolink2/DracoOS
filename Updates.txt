@@ -1,6 +1,2 @@
-# DracoOS — manifeste de mise à jour
-# Pour chaque entrée : chemin local, puis URL RAW HTTPS sur la ligne suivante.
-# Les fichiers absents de cette liste ne seront pas modifiés.
-# Exemple :
-# draco_core.py
-# https://raw.githubusercontent.com/Dracolink2/DracoOS/main/draco_core.py
+draco_core.py
+https://raw.githubusercontent.com/Dracolink2/DracoOS/refs/heads/main/draco_core.py
