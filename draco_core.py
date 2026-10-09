@@ -1,4 +1,3 @@
-"""DracoOS v0.2 — noyau Python minimal et extensible."""
 import os
 import shlex
 import subprocess
