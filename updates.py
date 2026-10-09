@@ -1,4 +1,3 @@
-"""Updater DracoOS : remplace uniquement les fichiers listés dans Updates.txt."""
 import argparse, os, shutil, subprocess, sys, tempfile, time, urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
