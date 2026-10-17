@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>DracoOS 5.2 — Horizon</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;font:14px 'Segoe UI',system-ui,sans-serif;user-select:none}
+:root{--bg:#202124;--fg:#f1f1f1;--acc:#4f8cff;--glass:rgba(40,42,48,.78)}
+body.light{--bg:#f3f3f3;--fg:#1a1a1a;--glass:rgba(250,250,250,.8)}
+#wp{position:fixed;inset:0;background:#123}
+#desk{position:absolute;inset:0 0 48px 0;padding:10px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:4px}
+.ic{width:84px;padding:8px 4px;text-align:center;color:#fff;text-shadow:0 1px 3px #000;border-radius:6px}.ic:hover{background:#fff3}.ic b{display:block;font-size:32px;font-weight:400}
+#tb{position:fixed;left:0;right:0;bottom:0;height:48px;background:var(--glass);backdrop-filter:blur(24px);color:var(--fg);display:flex;align-items:center;justify-content:center;gap:4px;border-top:1px solid #8883;z-index:9999}
+.tbtn{height:38px;min-width:40px;padding:0 10px;border-radius:6px;display:flex;align-items:center;gap:6px;cursor:default;font-size:13px}.tbtn:hover{background:#8884}.tbtn.on{border-bottom:3px solid var(--acc)}
+#clk{position:absolute;right:12px;font-size:12px;text-align:right;color:var(--fg)}
+#sm{position:fixed;bottom:56px;left:50%;transform:translateX(-50%);width:560px;height:520px;background:var(--glass);backdrop-filter:blur(30px);border-radius:12px;border:1px solid #8884;color:var(--fg);padding:18px;display:none;flex-direction:column;z-index:9998}
+#sm.o{display:flex}#sg{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;align-content:start;margin-top:12px}
+#sg div{text-align:center;padding:10px 2px;border-radius:8px;font-size:12px}#sg div:hover{background:#8884}#sg b{display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:400}
+#sq{width:100%;padding:9px 12px;border-radius:20px;border:1px solid #8884;background:#8882;color:var(--fg);outline:0}
+.pw{display:flex;gap:8px;justify-content:flex-end}.pw button,#su button{background:#8883;color:var(--fg);border:0;border-radius:6px;padding:8px 14px;cursor:pointer}.pw button:hover,#su button:hover{background:var(--acc);color:#fff}
+.win{position:absolute;background:var(--bg);border:1px solid #8886;border-radius:10px;box-shadow:0 12px 40px #0008;display:flex;flex-direction:column;overflow:hidden;resize:both;min-width:280px;min-height:170px}
+.win.max{inset:0 0 var(--taskbar-height) 0!important;width:auto!important;height:auto!important;border-radius:0;resize:none}.win.hid{display:none}
+.th{height:34px;display:flex;align-items:center;padding-left:10px;background:var(--glass);color:var(--fg);flex:none}.th span{flex:1;overflow:hidden;white-space:nowrap}
+.th button{width:44px;height:34px;border:0;background:0;color:inherit;font-size:14px}.th button:hover{background:#8885}.th .x:hover{background:#e81123;color:#fff}
+.win iframe{flex:1;border:0;width:100%}
+#toast{position:fixed;right:14px;bottom:60px;display:flex;flex-direction:column;gap:6px;z-index:10000}#toast div{background:var(--glass);color:var(--fg);backdrop-filter:blur(20px);padding:10px 14px;border-radius:8px;border:1px solid #8884}
+#su{position:fixed;inset:0;background:linear-gradient(135deg,#0f2027,#2c5364);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:20000;text-align:center}
+#su input,#su select{padding:8px;border-radius:6px;border:0;font-size:16px}
+body.nt{--glass:#2b2d31}body.light.nt{--glass:#e6e6e6}body.nt #tb,body.nt #sm{backdrop-filter:none}
+body.top #tb{top:0;bottom:auto;border-top:0;border-bottom:1px solid #8883}body.top #desk{inset:48px 0 0 0}body.top .win.max{inset:var(--taskbar-height) 0 0 0!important}body.top #sm{bottom:auto;top:56px}body.top #toast{bottom:14px}
+body.tl #tb{justify-content:flex-start;padding-left:8px}body.nd #desk{display:none}
+*{scrollbar-width:thin;scrollbar-color:#8886 transparent}
+@keyframes pop{from{opacity:0;transform:scale(.96)}}
+.win{border-radius:12px;box-shadow:0 18px 50px #000a,0 0 0 1px #fff1;animation:pop .14s ease-out}
+.th{height:36px;font-weight:500}.th button{transition:background .12s}
+.tbtn{border-radius:8px;transition:background .15s}.tbtn.on{border-bottom:0;background:#8883;box-shadow:inset 0 -3px var(--acc)}
+#tb{box-shadow:0 -4px 24px #0004}
+.ic{border-radius:10px;transition:background .15s}.ic b{font-size:38px;filter:drop-shadow(0 2px 4px #0009)}
+#sm{border-radius:16px;box-shadow:0 20px 60px #000b;animation:pop .15s}
+#sg div{border-radius:12px;transition:transform .1s,background .15s}#sg div:hover{transform:scale(1.06)}
+#ctx{position:fixed;z-index:10001;min-width:210px;background:var(--glass);backdrop-filter:blur(24px);color:var(--fg);border:1px solid #8884;border-radius:10px;padding:5px;box-shadow:0 10px 30px #000a;display:none}
+#ctx div{padding:7px 12px;border-radius:6px}#ctx div:hover{background:var(--acc);color:#fff}
+#snap{position:fixed;display:none;background:#4f8cff33;border:2px solid var(--acc);border-radius:12px;z-index:9990;pointer-events:none}
+.pk button{background:#8883;color:var(--fg);border:0;border-radius:6px;padding:7px 14px;cursor:pointer}.pk button:hover{background:var(--acc);color:#fff}.pk .it{padding:6px 10px;border-radius:6px}.pk .it:hover{background:#8883}.pk .it.s{background:var(--acc);color:#fff}
+#wp video{width:100%;height:100%;object-fit:cover;display:block}
+#tray{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:2px}
+#tray span,#tray #clk{padding:6px 8px;border-radius:6px;cursor:default}#tray span:hover,#tray #clk:hover{background:#8884}
+#tray #clk{position:static;font-size:12px;text-align:right}
+#sdk{width:9px;align-self:stretch;border-left:1px solid #8884;margin-left:4px}#sdk:hover{background:#8884}
+#tv{position:fixed;inset:0 0 48px 0;background:#000a;backdrop-filter:blur(16px);z-index:9995;display:flex;gap:24px;align-items:center;justify-content:center;padding:30px}
+#tv .tvc{flex:1;max-width:420px;min-height:240px;max-height:80%;overflow:auto;background:var(--glass);color:var(--fg);border:2px solid #8884;border-radius:14px;padding:14px}#tv h3{margin:0 0 10px;cursor:pointer}#tv .tvw{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer}#tv .tvw:hover{background:#8883}#tv .tvw span{flex:1;display:flex;align-items:center;gap:9px}#tv .tvw .draco-icon{width:24px;height:24px;flex:none}#tv .tvw .ov-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fly{position:fixed;right:10px;bottom:58px;width:330px;max-height:70vh;overflow:auto;background:var(--glass);backdrop-filter:blur(30px);color:var(--fg);border:1px solid #8884;border-radius:14px;padding:14px;z-index:9997;box-shadow:0 16px 50px #000b;display:flex;flex-direction:column;gap:8px;animation:pop .15s}
+body.top #fly{bottom:auto;top:58px}
+#fly .fr{display:flex;gap:6px;flex-wrap:wrap}#fly .fn{padding:8px;border-radius:8px;background:#8882}#fly .fn small{opacity:.6;display:block}
+#fly .cg{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2px}#fly .cg i{font-style:normal;padding:5px 0;border-radius:6px}#fly .cg .td{background:var(--acc);color:#fff}
+#fly button,#tv button{background:#8883;color:var(--fg);border:0;border-radius:6px;padding:7px 12px;cursor:pointer}#fly button:hover,#tv button:hover{background:var(--acc);color:#fff}
+
+
+:root{--acc:#8b9bff;--glass:rgba(20,24,38,.78);--line:rgba(255,255,255,.12)}
+body{background:#10131d;font-family:Inter,"Segoe UI",system-ui,sans-serif;letter-spacing:.012em}
+#wp{background:radial-gradient(ellipse at 15% 18%,#344c83 0,transparent 43%),radial-gradient(ellipse at 83% 78%,#58336f 0,transparent 42%),linear-gradient(135deg,#101827,#18243d 52%,#21162e)}
+#desk{padding:18px;gap:9px}
+.ic{width:94px;padding:11px 6px;border:1px solid transparent;text-shadow:0 2px 8px #000a;transition:background .18s,border-color .18s,transform .18s}
+.ic:hover{background:#ffffff16;border-color:#ffffff1b;transform:translateY(-2px)}
+.ic b{font-size:40px;margin-bottom:5px;display:flex;justify-content:center;align-items:center}.ic .draco-icon{width:48px;height:48px;filter:drop-shadow(0 5px 8px #0005)}
+#tb{height:58px;justify-content:center;background:rgba(19,22,33,.74);border:1px solid #ffffff17;border-bottom:0;box-shadow:0 -12px 48px #0004;backdrop-filter:blur(32px) saturate(150%);gap:7px}
+body.top #tb{height:58px;border-top:0;border-bottom:1px solid #ffffff17}
+body.top #desk{inset:58px 0 0}
+body.top .win.max{inset:58px 0 0!important}
+body.top #sm{top:66px}
+.tbtn{height:42px;min-width:44px;padding:0 13px;border-radius:12px;transition:background .18s,transform .18s}
+.tbtn:hover{background:#ffffff16;transform:translateY(-1px)}.tbtn .draco-icon{flex:none}.tbtn span{white-space:nowrap}
+.tbtn.on{background:#ffffff15;box-shadow:inset 0 -3px var(--acc)}
+#tray{right:8px;gap:4px}
+#tray span,#tray #clk{padding:8px 10px;border-radius:10px}
+#clk{line-height:1.35}
+#sdk{border-radius:4px;margin-left:5px}
+#sm{width:min(620px,calc(100vw - 28px));height:min(620px,calc(100vh - 90px));bottom:68px;padding:22px;background:rgba(22,25,38,.88);border:1px solid #ffffff1c;border-radius:22px;box-shadow:0 28px 90px #0008;backdrop-filter:blur(36px) saturate(150%)}
+body.top #sm{top:68px}
+#sq{padding:13px 16px;border-radius:14px;background:#ffffff0b;border-color:#ffffff20;font-size:14px}
+#sq:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent)}
+#sg{grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-top:18px}
+#sg div{padding:14px 5px;border:1px solid transparent}
+#sg div:hover{background:#ffffff12;border-color:#ffffff14;transform:translateY(-2px)}#sg .draco-icon{filter:drop-shadow(0 4px 7px #0003)}
+#sg b{font-size:34px;margin-bottom:7px;min-height:44px}#sg .draco-icon{width:42px;height:42px}#sg div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:84px}#sg div span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pw{padding-top:12px;border-top:1px solid #ffffff15;gap:8px}
+.pw button,#su button{padding:10px 15px;border:1px solid #ffffff1a;border-radius:10px;transition:background .16s,transform .16s}
+.pw button:hover,#su button:hover{transform:translateY(-1px)}
+.win{background:rgba(24,27,39,.96);border:1px solid #ffffff20;border-radius:14px;box-shadow:0 26px 80px #0007,0 0 0 1px #0002;min-width:300px;min-height:190px}
+.win.max{border-radius:0}
+.th{height:42px;padding-left:14px;background:rgba(255,255,255,.045);border-bottom:1px solid #ffffff0d;font-weight:600}.th>span{display:flex;align-items:center;gap:9px}.th .draco-icon{width:23px;height:23px;flex:none}.th .wtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.th button{width:42px;height:42px;transition:background .15s}
+#toast{right:18px;bottom:72px;gap:8px}
+body.top #toast{top:66px;bottom:auto}
+#toast div{padding:12px 16px;border-radius:12px;background:rgba(25,29,43,.9);border:1px solid #ffffff1b;box-shadow:0 12px 32px #0003}
+#ctx,#fly,#tv .tvc{background:rgba(25,29,43,.92);border-color:#ffffff20;box-shadow:0 22px 65px #0008}
+#ctx{border-radius:12px;padding:6px}
+#ctx div{padding:9px 13px;border-radius:8px}
+#fly{width:min(360px,calc(100vw - 20px));border-radius:18px;padding:16px}
+body.top #fly{top:66px}
+#fly button,#tv button{padding:9px 12px;border-radius:9px;transition:background .15s}
+#tv{padding:18px}
+#tv .tvc{border-radius:18px;padding:18px}
+#tv h3{cursor:default}
+#tv .tvw{padding:10px 12px;border-radius:10px}
+#tv .tvw button{margin-left:auto}
+#su{background:radial-gradient(ellipse at 20% 20%,#3b548f,transparent 50%),radial-gradient(ellipse at 80% 80%,#673d85,transparent 45%),linear-gradient(135deg,#101827,#171b2b 55%,#241a30);gap:16px}
+#su h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.04em;margin:0;font-weight:650}
+#su input,#su select{padding:11px 13px;border-radius:10px;background:#fff;color:#151723}
+#su button{background:var(--acc);color:#fff;font-weight:600;padding:11px 20px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+*{scrollbar-color:#ffffff30 transparent}
+@media(max-width:700px){
+ #tb{justify-content:flex-start;padding-left:8px;overflow:visible}
+ #tray{position:static;margin-left:auto}
+ #tray #clk{font-size:10px;padding:5px}
+ .tbtn{min-width:38px;padding:0 8px}
+ #sm{padding:15px}
+ #sg{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .win{min-width:min(280px,calc(100vw - 12px));max-width:calc(100vw - 12px)}
+ #tv{padding:12px;overflow:auto}
+ #tv .tvc{width:100%;max-width:none;min-height:150px;max-height:none;flex:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+:root{--taskbar-height:58px;--panel-bg:rgba(19,23,37,.88);--panel-border:rgba(255,255,255,.14);--focus-ring:#aab6ff}
+html{color-scheme:dark}
+body{isolation:isolate}
+#wp{background-color:#111827}
+#desk{inset:0 0 var(--taskbar-height) 0;align-content:flex-start;gap:10px;padding:20px;overflow:auto}
+body.top #desk{inset:var(--taskbar-height) 0 0 0}
+#tb{height:var(--taskbar-height);padding:0 8px;background:var(--panel-bg);border-color:var(--panel-border);backdrop-filter:blur(30px) saturate(160%)}
+body.top #tb{height:var(--taskbar-height)}
+.win.max{inset:0 0 var(--taskbar-height) 0!important}
+body.top .win.max{inset:var(--taskbar-height) 0 0 0!important}
+#sm{width:min(640px,calc(100vw - 24px));height:min(640px,calc(100dvh - var(--taskbar-height) - 16px));bottom:calc(var(--taskbar-height) + 8px);background:var(--panel-bg);border-color:var(--panel-border);backdrop-filter:blur(36px) saturate(155%)}
+body.top #sm{top:calc(var(--taskbar-height) + 8px);bottom:auto}
+#tv{bottom:var(--taskbar-height);background:rgba(7,10,18,.62)}
+#fly{bottom:calc(var(--taskbar-height) + 8px);background:var(--panel-bg);border-color:var(--panel-border)}
+body.top #fly{top:calc(var(--taskbar-height) + 8px);bottom:auto}
+#toast{bottom:calc(var(--taskbar-height) + 10px)}
+body.top #toast{top:calc(var(--taskbar-height) + 10px);bottom:auto}
+#ctx{background:var(--panel-bg);border-color:var(--panel-border)}
+.win{min-width:280px;min-height:180px;max-width:calc(100vw - 8px);max-height:calc(100dvh - var(--taskbar-height) - 8px);border-color:var(--panel-border);background:rgba(23,27,41,.97);backdrop-filter:blur(18px)}
+.th{background:rgba(255,255,255,.045);height:42px;touch-action:none}
+.th button{width:42px;height:42px}
+.th .m:hover,.th .M:hover{background:rgba(255,255,255,.14)}
+.ic{width:96px;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow-wrap:anywhere}
+.ic:focus-visible,.tbtn:focus-visible,#sg div:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+#sg{grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
+#sg div{min-width:0;overflow-wrap:anywhere}
+#sq{border-radius:12px}
+#tray{padding-right:4px}
+button{transition:background .15s,color .15s,transform .12s}
+button:active{transform:scale(.97)}
+::selection{background:var(--acc);color:#fff}
+@media(max-width:720px){
+ #desk{padding:10px;gap:5px}
+ .ic{width:78px;min-height:72px;padding:7px 3px}
+ .ic b{font-size:32px}
+ #tb{justify-content:flex-start;gap:3px;padding:0 4px}
+ .tbtn{min-width:36px;padding:0 7px;font-size:12px}
+ #tray{gap:0}
+ #tray span,#tray #clk{padding:5px 5px;font-size:11px}
+ .win{min-width:min(280px,calc(100vw - 8px));max-width:calc(100vw - 8px)}
+ #sm{padding:14px}
+ #tv{padding:10px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.tbtn{align-items:center;justify-content:center;gap:8px}.tbtn .draco-icon{width:25px;height:25px}.tbtn span{font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis}.tbtn .start-mark,.tbtn .overview-mark{font-size:21px;max-width:none;color:#dfe5ff}.tbtn .start-mark{background:linear-gradient(135deg,#92a8ff,#b98cff);color:transparent;background-clip:text}
+.ic .draco-icon{width:48px;height:48px}
+#sg .draco-icon{width:42px;height:42px}#sg div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:84px}#sg div span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style></head><body>
+<div id="wp" aria-hidden="true"></div><div id="desk" aria-label="Bureau DracoOS"></div>
+<div id="sm"><input id="sq" placeholder="Rechercher une application"><div id="sg"></div><div class="pw"><button id="lo">🔒 Verrouiller</button><button id="rs">🔄 Redémarrer</button><button id="of">⏻ Éteindre</button></div></div>
+<div id="tb"><div id="tray"><span id="tq" title="Paramètres rapides">📶 🔊</span><span id="tn" title="Notifications">🔔</span><div id="clk"></div><div id="sdk" title="Afficher le bureau"></div></div></div><div id="toast"></div><div id="snap"></div>
+<div id="su"><div id="lk" style="font-size:72px;font-weight:200;line-height:1"></div><div id="ld" style="opacity:.8;margin-bottom:10px"></div><h1>DracoOS</h1><div id="sm2">Chargement…</div></div>
+
+<template id="app-explorer"><style>
+:root{--ex-accent:var(--acc,#7187ff)}
+body{display:flex;flex-direction:column;height:100vh;background:var(--bg);color:var(--fg);font:13px "Segoe UI",system-ui,sans-serif}
+#bar{display:flex;gap:7px;align-items:center;padding:12px 14px;border-bottom:1px solid #ffffff12;background:linear-gradient(180deg,#ffffff07,transparent)}
+#bar button{height:34px;min-width:35px;padding:0 10px;border:1px solid #ffffff14;border-radius:10px;background:#ffffff08;color:inherit;transition:.16s}
+#bar button:hover{background:var(--ex-accent);color:#fff;transform:translateY(-1px)}
+#bar input{min-width:0;flex:1;height:36px;padding:0 13px;border:1px solid #ffffff18;border-radius:11px;background:#ffffff09;color:inherit;outline:none}
+#bar input:focus{border-color:var(--ex-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ex-accent) 20%,transparent)}
+#mn{flex:1;display:flex;min-height:0;min-width:0}
+#side{width:164px;flex:none;padding:13px 9px;border-right:1px solid #ffffff12;background:#ffffff03;overflow:auto}
+#side h4{margin:4px 9px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.13em;opacity:.5}
+#side button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 11px;margin:2px 0;border:0;border-radius:9px;background:transparent;color:inherit;text-align:left;white-space:nowrap;cursor:pointer}
+#side button:hover{background:#ffffff0d}
+#side button.active{background:color-mix(in srgb,var(--ex-accent) 22%,transparent);box-shadow:inset 2px 0 var(--ex-accent)}
+#side button span{width:20px;text-align:center;font-size:16px}
+#list{flex:1;min-width:0;overflow:auto;padding:12px}
+#list.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));align-content:start;gap:8px}
+#list.grid:before{grid-column:1/-1}
+#list.grid .r{flex-direction:column;align-items:center;justify-content:center;min-height:112px;text-align:center;gap:7px;padding:12px 6px}
+#list.grid .r .fi{width:46px;height:46px}
+#list.grid .r .fi svg{width:42px;height:42px}
+#list.grid .r .fname{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#list.grid .r .fsize{margin-left:0}
+#list:before{content:"Nom";display:block;padding:0 10px 10px;margin-bottom:5px;border-bottom:1px solid #ffffff12;font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.48}
+#pv{width:218px;flex:none;border-left:1px solid #ffffff12;padding:16px 13px;overflow:auto;text-align:center;font-size:12px;background:#ffffff02}#pv>b{font-size:14px;line-height:1.4}#pv:empty{opacity:.5}
+#pv img,#pv video{max-width:100%;max-height:200px;border-radius:12px;box-shadow:0 8px 22px #0004}
+#pv audio{width:100%}#pv pre{text-align:left;white-space:pre-wrap;word-break:break-all;user-select:text;margin:8px 0 0}
+.r{display:flex;align-items:center;gap:11px;padding:9px 10px;border:1px solid transparent;border-radius:10px;transition:background .13s,border-color .13s}
+.r:hover{background:#ffffff08;border-color:#ffffff0a}
+.r.s{background:color-mix(in srgb,var(--ex-accent) 18%,transparent);border-color:color-mix(in srgb,var(--ex-accent) 38%,transparent)}
+.r .fi{width:30px;height:30px;display:grid;place-items:center;flex:none}
+.r .fi svg{width:27px;height:27px;filter:drop-shadow(0 3px 4px #0003)}
+.r .fname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r .fsize{margin-left:auto;opacity:.5;font-size:11px;white-space:nowrap}
+@media(max-width:650px){ #side{width:54px;padding:10px 5px}#side h4{display:none}#side button{justify-content:center;padding:10px 0;font-size:0}#side button span{font-size:17px}#pv{display:none}#bar{padding:8px;gap:4px}#bar button{padding:0 7px}}
+</style>
+<div id="bar"><button id="up" title="Dossier parent">⬆</button><input id="path" aria-label="Chemin du dossier" placeholder="Chemin…"><input id="filter" aria-label="Rechercher dans ce dossier" placeholder="🔎 Rechercher…" style="flex:0 1 190px;max-width:30%;"><select id="sorter" title="Trier les fichiers" aria-label="Trier les fichiers" style="max-width:110px;background:var(--glass);color:inherit;border:1px solid #8884;border-radius:8px;padding:6px"><option value="name">Nom</option><option value="type">Type</option><option value="size">Taille</option><option value="date">Date</option></select><button id="viewBtn" title="Basculer entre liste et grille">▦</button><button id="nf" title="Nouveau dossier">📁+</button><button id="nt">📄+</button><button id="rn">✏️</button><button id="dl">🗑</button><button id="wl" title="Définir comme fond d’écran">🖼</button><button id="cb" title="Copier (Ctrl+C)">📋</button><button id="pb" title="Coller (Ctrl+V)">📥</button><button id="em" hidden>🧹 Vider la corbeille</button><button id="im">⬆ Importer</button><input type="file" id="fi" multiple hidden></div><div id="mn"><aside id="side"><h4>Accès rapide</h4><button data-path="/"><span>⌂</span>Accueil</button><button data-path="/Bureau"><span>▦</span>Bureau</button><button data-path="/Documents"><span>▤</span>Documents</button><button data-path="/Images"><span>▧</span>Images</button><button data-path="/Musique"><span>♫</span>Musique</button><button data-path="/Jeux"><span>◇</span>Jeux</button></aside><div id="list"></div><div id="pv">Sélectionnez un fichier</div></div>
+<script>
+let cwd=DRACO_ARGS.path||'/',sel=null,viewMode='list',sortMode='name';const J=(a,b)=>(a=='/'?'':a)+'/'+b;
+const fileSvg=(f)=>{const ext=(f.n.split('.').pop()||'').toLowerCase();if(f.t==='d')return '<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9ebcff"/><stop offset="1" stop-color="#5479e8"/></linearGradient></defs><path d="M4 11a3 3 0 0 1 3-3h10l4 4h12a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z" fill="url(#fg)" opacity=".95"/><path d="M4 17h32l-3 14a3 3 0 0 1-3 2H7a3 3 0 0 1-3-3z" fill="#c7dcff" opacity=".8"/></svg>';let c='#9aa8bd',label='FILE';if(/png|jpe?g|gif|webp|svg|bmp/.test(ext)){c='#e879a8';label='IMG'}else if(/mp3|wav|ogg|m4a|flac/.test(ext)){c='#c084fc';label='AUD'}else if(/mp4|webm|mov/.test(ext)){c='#f59e0b';label='VID'}else if(/py|js|html?|css|json/.test(ext)){c='#55c5b1';label=ext.toUpperCase().slice(0,4)}else if(/pdf/.test(ext)){c='#ff6b75';label='PDF'}else if(/zip|7z|tar|gz/.test(ext)){c='#e7b75a';label='ZIP'}else if(/txt|md|log/.test(ext)){c='#70a5ff';label='TXT'}return '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 3h14l8 8v25a2 2 0 0 1-2 2H10a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3" fill="'+c+'" opacity=".96"/><path d="M24 3v8h8" fill="#fff" opacity=".55"/><path d="M12 22h16M12 27h16M12 32h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".78"/><rect x="9" y="13" width="22" height="6" rx="2" fill="#fff" opacity=".18"/></svg>'};
+document.querySelectorAll('#side button').forEach(b=>b.onclick=()=>go(b.dataset.path));
+function formatSize(n){if(n<1024)return n+' o';if(n<1048576)return (n/1024).toFixed(1)+' Ko';if(n<1073741824)return (n/1048576).toFixed(1)+' Mo';return (n/1073741824).toFixed(1)+' Go'}
+async function go(p){const r=await Draco.fs_ls(p);if(!Array.isArray(r))return;cwd=p;document.querySelectorAll('#side button').forEach(b=>b.classList.toggle('active',b.dataset.path===p));sel=null;path.value=p;pv.textContent='Sélectionnez un fichier';names=new Set(r.map(x=>x.n));em.hidden=!cwd.startsWith('/Documents/Corbeille');list.innerHTML='';list.classList.toggle('grid',viewMode==='grid');viewBtn.textContent=viewMode==='grid'?'☰':'▦';viewBtn.title=viewMode==='grid'?'Afficher en liste':'Afficher en grille';
+r.filter(f=>!filter.value||f.n.toLocaleLowerCase().includes(filter.value.toLocaleLowerCase())).sort((a,b)=>{const dirs=(a.t=='d'?0:1)-(b.t=='d'?0:1);if(dirs)return dirs;if(sortMode==='size')return (a.s||0)-(b.s||0)||a.n.localeCompare(b.n,'fr',{numeric:true,sensitivity:'base'});if(sortMode==='date')return (b.m||0)-(a.m||0);if(sortMode==='type')return (a.n.split('.').pop()||'').localeCompare((b.n.split('.').pop()||''),'fr',{sensitivity:'base'})||a.n.localeCompare(b.n,'fr',{numeric:true,sensitivity:'base'});return a.n.localeCompare(b.n,'fr',{numeric:true,sensitivity:'base'})}).forEach(f=>{const d=document.createElement('div');d.className='r';
+d.innerHTML='<span class="fi"></span><span class="fname"></span><span class="fsize"></span>';d.children[0].innerHTML=fileSvg(f);d.children[1].textContent=f.n;d.children[2].textContent=f.t=='f'?formatSize(f.s):'';
+d.onclick=()=>{sel=f;[...list.children].forEach(x=>x.classList.remove('s'));d.classList.add('s');prev(f)};
+d.ondblclick=()=>f.t=='d'?go(J(cwd,f.n)):Draco.open(app_(f.n),{path:J(cwd,f.n)});list.appendChild(d)})}
+viewBtn.onclick=()=>{viewMode=viewMode==='list'?'grid':'list';go(cwd)};sorter.value=sortMode;sorter.onchange=()=>{sortMode=sorter.value;go(cwd)};up.onclick=()=>go(cwd.replace(/\/[^\/]+$/,'')||'/');path.onkeydown=e=>{if(e.key=='Enter')go(path.value||'/')};filter.oninput=()=>go(cwd);addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f'){e.preventDefault();filter.focus();filter.select()}if(e.key==='Escape'&&document.activeElement===filter){filter.value='';go(cwd);filter.blur()}});
+nf.onclick=async()=>{const n=prompt('Nom du dossier');if(n){await Draco.fs_mkdir(J(cwd,n));go(cwd)}};
+nt.onclick=async()=>{const n=prompt('Nom du fichier');if(n){await Draco.fs_write(J(cwd,n),'');go(cwd)}};
+rn.onclick=async()=>{if(!sel)return;const n=prompt('Nouveau nom',sel.n);if(n){await Draco.fs_mv(J(cwd,sel.n),J(cwd,n));go(cwd)}};
+const cm=document.createElement('div');cm.style.cssText='position:fixed;display:none;z-index:99;min-width:200px;background:var(--glass);color:var(--fg);border:1px solid #8884;border-radius:10px;padding:5px;box-shadow:0 10px 30px #0008';document.body.appendChild(cm);
+document.addEventListener('click',()=>cm.style.display='none');
+list.oncontextmenu=e=>{e.preventDefault();const row=e.target.closest('.r');if(row)row.click();else{sel=null;[...list.children].forEach(x=>x.classList.remove('s'))}const it=[];
+if(sel){it.push(['📂 Ouvrir',()=>row&&row.ondblclick()],['✏️ Renommer',()=>rn.click()],['📋 Copier',()=>cb.click()],['🗑 Supprimer',()=>dl.click()]);if(/\.(png|jpe?g|gif|webp|svg|bmp|mp4|webm)$/i.test(sel.n))it.push(['🖼 Définir comme fond',()=>wl.click()])}
+it.push(['📥 Coller',()=>pb.click()],['📁 Nouveau dossier',()=>nf.click()],['📄 Nouveau fichier',()=>nt.click()]);
+cm.innerHTML='';it.forEach(([t,f])=>{const d=document.createElement('div');d.textContent=t;d.style.cssText='padding:7px 12px;border-radius:6px';d.onmouseenter=()=>{d.style.background='var(--acc)';d.style.color='#fff'};d.onmouseleave=()=>{d.style.background='';d.style.color=''};d.onclick=f;cm.appendChild(d)});
+cm.style.left=Math.min(e.clientX,innerWidth-210)+'px';cm.style.top=Math.max(0,Math.min(e.clientY,innerHeight-it.length*34-10))+'px';cm.style.display='block'};
+const TR='/Documents/Corbeille';
+dl.onclick=async()=>{if(!sel)return;const fp=J(cwd,sel.n);
+if(fp==TR||fp.startsWith(TR+'/')){if(confirm('Supprimer définitivement '+sel.n+' ?')){await Draco.fs_rm(fp);go(cwd)}return}
+await Draco.fs_mkdir(TR);const l=await Draco.fs_ls(TR),tk=new Set((Array.isArray(l)?l:[]).map(x=>x.n));let n=sel.n;if(tk.has(n))n=n.replace(/(\.[^.]*)?$/,' ('+Date.now()%100000+')$1');
+const r=await Draco.fs_mv(fp,TR+'/'+n);if(r&&r.error)alert(r.error);else Draco.notify('Déplacé dans la corbeille');go(cwd)};
+em.onclick=async()=>{if(!confirm('Vider définitivement ce dossier ?'))return;const l=await Draco.fs_ls(cwd);if(Array.isArray(l))for(const f of l)await Draco.fs_rm(J(cwd,f.n));go(cwd)};
+cb.onclick=()=>{if(sel){clip={p:J(cwd,sel.n),n:sel.n,t:sel.t};Draco.notify('Copié : '+sel.n)}};
+async function cp(a,b,t){if(t=='d'){await Draco.fs_mkdir(b);const l=await Draco.fs_ls(a);if(Array.isArray(l))for(const f of l)await cp(J(a,f.n),J(b,f.n),f.t)}else{const c=await Draco.fs_read(a);if(c==null)return;const r=await Draco.fs_write(b,c);if(r&&r.error)throw r.error}}
+pb.onclick=async()=>{if(!clip)return Draco.notify('Rien à coller');if(clip.t=='d'&&(cwd+'/').startsWith(clip.p+'/'))return Draco.notify('Impossible de copier un dossier dans lui-même');
+let n=clip.n;if(names.has(n))n=n.replace(/(\.[^.]*)?$/,' - copie$1');try{await cp(clip.p,J(cwd,n),clip.t);Draco.notify('Collé : '+n)}catch(e){alert('Erreur : '+e)}go(cwd)};
+document.addEventListener('keydown',e=>{if(e.target.tagName=='INPUT')return;if(e.key=='Delete')dl.click();else if(e.key=='F2'){e.preventDefault();rn.click()}else if(e.ctrlKey&&e.key=='c')cb.click();else if(e.ctrlKey&&e.key=='v')pb.click()});
+list.ondragover=e=>e.preventDefault();list.ondrop=e=>{e.preventDefault();if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;fi.onchange()}};
+const app_=n=>/\.html?$/i.test(n)?'htmlstudio':/\.py$/i.test(n)?'python':/\.(png|jpe?g|gif|webp|svg|bmp|mp3|wav|ogg|m4a|mp4|webm|pdf)$/i.test(n)?'viewer':/\.csv$/i.test(n)?'sheet':'notepad';
+im.onclick=()=>fi.click();
+let names=new Set(),clip=null;let pt=0;async function prev(f){const k=++pt;pv.textContent='';const t=document.createElement('b');t.textContent=f.n;t.style.cssText='display:block;word-break:break-all;margin-bottom:6px';pv.appendChild(t);
+if(f.t=='d'){pv.append('Dossier');return}
+const e=f.n.split('.').pop().toLowerCase(),info=document.createElement('div');info.style.cssText='opacity:.6;margin-top:6px';info.textContent=formatSize(f.s)+(f.m?' · Modifié le '+new Date(f.m*1000).toLocaleString('fr-FR'):'');
+const I=/^(png|jpe?g|gif|webp|svg|bmp)$/.test(e),V=/^(mp4|webm)$/.test(e),A=/^(mp3|wav|ogg|m4a)$/.test(e),T=/^(txt|py|html?|css|js|json|md|csv|xml|ini|log|ya?ml)$/.test(e);
+if(!(I||V||A||T||e=='pdf')){pv.append('Pas d’aperçu pour ce type');pv.appendChild(info);return}
+if(f.s>4e7&&!T){pv.append('Trop volumineux pour l’aperçu');pv.appendChild(info);return}
+const c=await Draco.fs_read(J(cwd,f.n));if(k!=pt)return;if(c==null){pv.append('Aperçu indisponible');return}
+let u=c,el;if(I&&!u.startsWith('data:'))u='data:image/svg+xml;utf8,'+encodeURIComponent(c);
+if(I||V||A){el=document.createElement(I?'img':V?'video':'audio');el.src=u;if(!I)el.controls=true;if(V)el.muted=true}
+else if(T){el=document.createElement('pre');el.textContent=c.slice(0,1500)+(c.length>1500?'\n…':'')}
+else{el=document.createElement('iframe');el.src=u;el.style.cssText='width:100%;height:240px;border:0'}
+pv.appendChild(el);pv.appendChild(info)}
+wl.onclick=async()=>{if(sel&&sel.t=='f'&&/\.(png|jpe?g|gif|webp|svg|bmp|mp4|webm)$/i.test(sel.n)){await Draco.wallpaper_file(J(cwd,sel.n));Draco.notify('Fond d’écran changé')}else Draco.notify('Sélectionnez une image, un GIF ou une vidéo')};
+fi.onchange=async()=>{for(const f of fi.files){const t=/\.(txt|py|html?|css|js|json|md|csv|xml|ini|log|ya?ml)$/i.test(f.name);
+const c=await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);t?r.readAsText(f):r.readAsDataURL(f)});
+const x=await Draco.fs_write(J(cwd,f.name),c);if(x&&x.error)alert(f.name+' : '+x.error)}fi.value='';go(cwd)};
+go(cwd);
+</script></template>
+
+<template id="app-notepad"><style>body{display:flex;flex-direction:column;height:100vh}#bb{padding:6px;display:flex;gap:6px;align-items:center}textarea{flex:1;resize:none;border:0;border-radius:0;outline:0;padding:10px;background:var(--bg);font:14px Consolas,monospace}</style>
+<div id="bb"><button id="s">💾 Enregistrer</button><button id="a">Enregistrer sous…</button><span id="m" style="margin-left:auto;opacity:.6"></span></div><textarea id="t"></textarea>
+<script>
+let f=DRACO_ARGS.path;(async()=>{if(f)t.value=await Draco.fs_read(f)??'';m.textContent=f||'Sans titre'})();
+async function save(as){if(!f||as){const n=prompt('Chemin :',f||'/Documents/note.txt');if(!n)return;f=n}const r=await Draco.fs_write(f,t.value);m.textContent=r&&r.error?r.error:f}
+s.onclick=()=>save();a.onclick=()=>save(1);t.onkeydown=e=>{if(e.ctrlKey&&e.key=='s'){e.preventDefault();save()}};
+</script></template>
+
+<template id="app-writer"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:1px solid #8884}#pg{flex:1;overflow:auto;background:#8883;padding:20px}#ed{background:#fff;color:#111;max-width:800px;min-height:1000px;margin:auto;padding:50px;outline:0;box-shadow:0 2px 12px #0005;user-select:text}</style>
+<div id="tl"><button data-c="bold"><b>G</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>S</u></button><button data-c="insertUnorderedList">• Liste</button><button data-c="insertOrderedList">1. Liste</button><button data-c="justifyLeft">⬅</button><button data-c="justifyCenter">↔</button><button data-c="justifyRight">➡</button>
+<select id="bl"><option value="P">Texte</option><option value="H1">Titre 1</option><option value="H2">Titre 2</option></select><select id="fz"><option value="2">Petit</option><option value="3" selected>Normal</option><option value="5">Grand</option><option value="7">Énorme</option></select><input type="color" id="co" value="#000000"><button id="sv">💾 Enregistrer</button><button id="pt">🖨 Imprimer/PDF</button><span id="m" style="opacity:.6"></span></div>
+<div id="pg"><div id="ed" contenteditable="true"></div></div>
+<script>
+let f=DRACO_ARGS.path;if(f)Draco.fs_read(f).then(t=>ed.innerHTML=t||'');
+document.querySelectorAll('[data-c]').forEach(b=>b.onmousedown=e=>{e.preventDefault();document.execCommand(b.dataset.c)});
+bl.onchange=()=>document.execCommand('formatBlock',false,bl.value);fz.onchange=()=>document.execCommand('fontSize',false,fz.value);co.oninput=()=>document.execCommand('foreColor',false,co.value);
+sv.onclick=async()=>{if(!f){const n=prompt('Chemin :','/Documents/document.html');if(!n)return;f=n}const r=await Draco.fs_write(f,ed.innerHTML);m.textContent=r&&r.error?r.error:'Enregistré : '+f};pt.onclick=()=>print();
+</script></template>
+
+<template id="app-browser"><style>body{display:flex;flex-direction:column;height:100vh}#bar{display:flex;gap:6px;padding:8px}#bar input{flex:1}iframe{flex:1;border:0;background:#fff;width:100%}</style>
+<div id="bar"><button id="b">◀</button><button id="f">▶</button><button id="r">⟳</button><input id="u" placeholder="Adresse ou recherche"><select id="se"><option value="https://html.duckduckgo.com/html/?q=">DuckDuckGo</option><option value="https://www.mojeek.com/search?q=">Mojeek</option><option value="https://www.bing.com/search?q=">Bing</option></select></div><iframe id="v"></iframe>
+<script>
+let h=[],i=-1;function show(){u.value=h[i];v.src='/proxy?u='+encodeURIComponent(h[i])}
+function go(x){x=x.trim();if(!x)return;if(!/^https?:\/\//.test(x))x=/\.\w/.test(x)&&!/\s/.test(x)?'https://'+x:se.value+encodeURIComponent(x);h=h.slice(0,i+1);h.push(x);i++;show()}
+u.onkeydown=e=>{if(e.key=='Enter')go(u.value)};b.onclick=()=>{if(i>0){i--;show()}};f.onclick=()=>{if(i<h.length-1){i++;show()}};r.onclick=()=>h[i]&&show();go('https://html.duckduckgo.com/html/');
+</script></template>
+
+<template id="app-terminal"><style>body{background:#0c0c0c;color:#ddd;font:14px Consolas,monospace;height:100vh;display:flex;flex-direction:column}#w{flex:1;overflow:auto;padding:8px}#o{margin:0;white-space:pre-wrap;user-select:text}#row{display:flex;padding:0 8px 8px}#pr{color:#6f6;white-space:pre}#i{flex:1;background:transparent;border:0;outline:0;color:#ddd;font:inherit}</style>
+<div id="w"><pre id="o">DracoOS Terminal — tapez help
+</pre></div><div id="row"><span id="pr">/&gt; </span><input id="i"></div>
+<script>
+let cwd='/',HI=[],hi=0,custom=[];const AF=Object.getPrototypeOf(async function(){}).constructor;
+const out=s=>{o.textContent+=s+'\n';w.scrollTop=w.scrollHeight};
+const res=p=>{p=p||'';if(p[0]!='/')p=cwd+'/'+p;const r=[];p.split('/').forEach(x=>{if(x=='..')r.pop();else if(x&&x!='.')r.push(x)});return '/'+r.join('/')};
+const C={help:()=>out('Commandes : '+Object.keys(C).concat(custom.map(c=>c.name+'*')).join(' ')+'\n(* = ajoutée par une app ou par cmdadd)'),
+ls:async a=>{const r=await Draco.fs_ls(res(a[0]));out(r.error||r.map(f=>f.t=='d'?'['+f.n+']':f.n).join('  '))},
+cd:async a=>{const p=res(a[0]),r=await Draco.fs_ls(p);if(r.error)out('Dossier introuvable');else{cwd=p;pr.textContent=p+'> '}},
+pwd:()=>out(cwd),cat:async a=>out(await Draco.fs_read(res(a[0]))??'Fichier introuvable'),
+mkdir:async a=>{await Draco.fs_mkdir(res(a[0]))},touch:async a=>{await Draco.fs_write(res(a[0]),'')},
+rm:async a=>{await Draco.fs_rm(res(a[0]))},mv:async a=>{await Draco.fs_mv(res(a[0]),res(a[1]))},
+echo:async a=>{const t=a.join(' '),k=t.indexOf(' > ');if(k<0)out(t);else await Draco.fs_write(res(t.slice(k+3).trim()),t.slice(0,k))},
+clear:()=>{o.textContent=''},date:()=>out(new Date().toLocaleString()),
+open:async a=>{await Draco.open(a[0],a[1]?{path:res(a[1])}:{})},
+apps:async()=>out((await Draco.apps()).map(x=>x.id+' - '+x.n).join('\n')),
+wallpaper:async a=>{await Draco.wallpaper(a.join(' '))},theme:async a=>{await Draco.setting('theme',a[0])},
+df:async()=>{const s=await Draco.status();out('Total '+s.total+' o | Libre '+s.free+' o')},
+neofetch:()=>out('DracoOS 1.0\nNoyau : Flask + HTML\nShell : draco-term'),
+cmdadd:async a=>{const n=a.shift();if(!n||!a.length)return out('Usage : cmdadd nom code JS (args, print, Draco)');await Draco.cmd_add(n,'commande perso',a.join(' '));custom=await Draco.cmd_list();out('Commande ajoutée : '+n)},
+py:async a=>{const c=await Draco.fs_read(res(a[0]));if(c==null)return out('Fichier introuvable');const r=await Draco.python(c,'');out((r.out||'')+(r.err?'\n'+r.err:''))},
+shutdown:()=>Draco.shutdown()};
+async function run(l){out(pr.textContent+l);const a=l.trim().split(/\s+/),n=a.shift();if(!n)return;
+try{if(C[n])await C[n](a);else{const c=custom.find(x=>x.name==n);if(c)await new AF('args','Draco','print',c.code)(a,Draco,out);else out(n+' : commande inconnue')}}catch(e){out('Erreur : '+e)}}
+i.onkeydown=e=>{if(e.key=='Enter'){HI.push(i.value);hi=HI.length;run(i.value);i.value=''}else if(e.key=='ArrowUp'){hi=Math.max(0,hi-1);i.value=HI[hi]||''}else if(e.key=='ArrowDown'){hi=Math.min(HI.length,hi+1);i.value=HI[hi]||''}};
+Draco.cmd_list().then(l=>custom=l);document.onclick=()=>i.focus();i.focus();
+</script></template>
+
+<template id="app-settings"><style>body{display:flex;height:100vh}nav{width:170px;padding:10px;border-right:1px solid #8884}nav div{padding:8px 10px;border-radius:6px;cursor:pointer}nav div:hover,nav .s{background:#8884}main{flex:1;padding:18px;overflow:auto}h3{margin-top:0}.row{margin:12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.wp{width:90px;height:56px;border-radius:6px;cursor:pointer}.bar{height:12px;background:#8884;border-radius:6px;overflow:hidden;width:100%}.bar i{display:block;height:100%;background:var(--acc)}</style>
+<nav id="n"></nav><main id="m"></main>
+<script>
+const WP=['linear-gradient(135deg,#1e3c72,#2a5298 50%,#7b4397)','linear-gradient(135deg,#0f2027,#2c5364)','linear-gradient(135deg,#ff9966,#ff5e62)','linear-gradient(135deg,#134e5e,#71b280)','#101010','linear-gradient(135deg,#232526,#414345)','linear-gradient(135deg,#41295a,#2f0743)','linear-gradient(135deg,#141e30,#243b55)','linear-gradient(135deg,#ee0979,#ff6a00)','linear-gradient(135deg,#000428,#004e92)'];
+const fmt=b=>b>1e9?(b/1e9).toFixed(2)+' Go':(b/1e6).toFixed(1)+' Mo';
+const pickWp=async()=>{const p=await Draco.pick({title:'Choisir un fond (image, GIF, vidéo)',start:'/Images',ext:['png','jpe?g','gif','webp','svg','bmp','mp4','webm']});if(p){await Draco.wallpaper_file(p);Draco.notify('Fond d’écran changé')}};
+const P={
+'Personnalisation':async()=>{const t=await Draco.setting('theme'),a=await Draco.setting('accent');
+m.innerHTML='<h3>Personnalisation</h3><div class=row>Thème <select id=th><option value=dark>Sombre</option><option value=light>Clair</option></select> Accent <input id=ac type=color></div><div class=row>'+WP.map((w,i)=>'<div class=wp data-i='+i+' style="background:'+w+'"></div>').join('')+'</div><div class=row><button id=wf>📂 Choisir une image, un GIF ou une vidéo…</button></div><div class=row><input id=wu placeholder="Lien image ou couleur CSS" style="flex:1"><button id=wb>Appliquer</button></div><p style="opacity:.7">Le thème s’applique aux apps ouvertes après le changement.</p>';
+th.value=t;ac.value=a;th.onchange=()=>Draco.setting('theme',th.value);ac.onchange=()=>Draco.setting('accent',ac.value);
+document.querySelectorAll('.wp').forEach(e=>e.onclick=()=>Draco.wallpaper(WP[e.dataset.i]));wb.onclick=()=>wu.value&&Draco.wallpaper(wu.value);wf.onclick=pickWp},
+'Stockage':async()=>{const s=await Draco.status(),c=await Draco.setting('compress'),u=s.total-s.free;
+m.innerHTML='<h3>Stockage</h3><div class=bar><i style="width:'+(u/s.total*100)+'%"></i></div><p>'+fmt(u)+' utilisés sur '+fmt(s.total)+' ('+fmt(s.free)+' libres)</p><div class=row><label><input type=checkbox id=cp> Compresser à l’extinction</label></div><p style="opacity:.7">Sans compression, ou après une coupure brutale, tout reste enregistré mais non compressé : démarrage plus rapide, moins d’espace affiché.</p>';
+cp.checked=c!==false;cp.onchange=()=>Draco.setting('compress',cp.checked);
+if(!(await Draco.whoami()).admin)return m.insertAdjacentHTML('beforeend','<p style="opacity:.7">Seul l’administrateur peut modifier la taille du disque.</p>');
+m.insertAdjacentHTML('beforeend','<h3>Taille du disque</h3><div class=row><input id=nz type=number min=1 step=any style="width:110px"><select id=nu><option value=1>Mo</option><option value=1024>Go</option></select><button id=nb>Redimensionner</button></div><p id=nr style="opacity:.7">Agrandir ajoute de l’espace vide ; réduire n’est possible que si les données tiennent dans la nouvelle taille.</p>');
+nu.value=1024;nz.value=(s.total/1073741824).toFixed(2);
+nb.onclick=async()=>{const mb=Math.round(nz.value*nu.value);nr.textContent='Redimensionnement en cours…';const r=await Draco.resize(mb);if(r.error)nr.textContent='Erreur : '+r.error;else P['Stockage']()}},
+'Sauvegarde':async()=>{const me=await Draco.whoami();m.innerHTML='<h3>🛡️ Sauvegarde de DracoOS</h3><p>Crée une copie de sécurité du disque virtuel, avec les fichiers, les applications installées et les paramètres.</p><div class=row><button id=bd>📦 Télécharger une sauvegarde complète</button></div><p id=be style=opacity:.7></p><h3>Restaurer une sauvegarde</h3><p>Ferme DracoOS avant de restaurer : remplace le fichier <code>draco.db</code> par ta copie de sauvegarde. Conserve toujours une copie de l’ancien fichier.</p><p id=br style=opacity:.7></p>';if(!me.admin){bd.disabled=true;be.textContent='La sauvegarde complète est réservée au compte administrateur.'}bd.onclick=async()=>{be.textContent='Préparation de la sauvegarde…';try{await Draco.backup();be.textContent='Téléchargement lancé. Garde ce fichier dans un endroit sûr.'}catch(e){be.textContent='Erreur : '+e}}},
+'Applications':async()=>{const a=await Draco.apps();m.innerHTML='<h3>Applications</h3>';a.forEach(x=>{const d=document.createElement('div');d.className='row';d.textContent=x.i+' '+x.n+(x.inst?'':' (système)');if(x.inst){const b=document.createElement('button');b.textContent='Retirer';b.onclick=async()=>{await Draco.uninstall(x.id);P.Applications()};d.appendChild(b)}m.appendChild(d)})},
+'Comptes':async()=>{const me=await Draco.whoami();
+m.innerHTML='<h3>Mon compte : '+me.name+(me.admin?' (administrateur)':'')+'</h3><div class=row><input id=po type=password placeholder="Ancien mot de passe"><input id=pn type=password placeholder="Nouveau (4 min.)"><button id=pb>Changer</button></div><p id=pe></p>';
+pb.onclick=async()=>{const r=await Draco.passwd(po.value,pn.value);pe.textContent=r.error||'Mot de passe changé.'};
+if(!me.admin)return;
+m.insertAdjacentHTML('beforeend','<h3>Utilisateurs</h3><div id=ul></div><div class=row><input id=un placeholder="Nom"><input id=up type=password placeholder="Mot de passe"><button id=ub>Ajouter</button></div><p id=ue></p>');
+const L=async()=>{ul.innerHTML='';(await Draco.accounts()).forEach(u=>{const d=document.createElement('div');d.className='row';d.textContent='👤 '+u.name+(u.admin?' (admin)':'');
+if(!u.admin){const b=document.createElement('button');b.textContent='Supprimer';b.onclick=async()=>{if(confirm('Supprimer '+u.name+' et tous ses fichiers ?')){await Draco.account_del(u.name);L()}};d.appendChild(b)}ul.appendChild(d)})};
+ub.onclick=async()=>{const r=await Draco.account_add(un.value.trim(),up.value);ue.textContent=r.error||'Utilisateur créé.';L()};L()},
+'Bureau':async()=>{const v=k=>Draco.setting(k);
+m.innerHTML='<h3>Bureau et barre des tâches</h3><div class=row>Barre des tâches <select id=tp><option value=bottom>En bas</option><option value=top>En haut</option></select><select id=ta><option value=center>Centrée</option><option value=left>À gauche</option></select></div><div class=row><label><input type=checkbox id=tr> Effets de transparence</label></div><div class=row><label><input type=checkbox id=di> Icônes du bureau</label></div><div class=row>Taille du texte des apps <input id=fs type=number min=11 max=22 style="width:70px"></div><div class=row><button id=wi>Choisir un fond (image, GIF, vidéo)…</button></div>';
+tp.value=(await v('tbpos'))||'bottom';ta.value=(await v('tbalign'))||'center';tr.checked=(await v('transp'))!==false;di.checked=(await v('deskicons'))!==false;fs.value=(await v('fs'))||14;
+tp.onchange=()=>Draco.setting('tbpos',tp.value);ta.onchange=()=>Draco.setting('tbalign',ta.value);tr.onchange=()=>Draco.setting('transp',tr.checked);di.onchange=()=>Draco.setting('deskicons',di.checked);fs.onchange=()=>Draco.setting('fs',+fs.value||14);
+wi.onclick=pickWp},
+'Système':async()=>{m.innerHTML='<h3>Système</h3><div class=row><button id=rb>🔄 Redémarrer</button><button id=sd>⏻ Éteindre</button></div><h3>Zone dangereuse</h3><p>Réinitialiser efface tous les fichiers et les apps installées, mais garde la taille du disque.</p><div class=row><input id=cf placeholder="Tapez RESET pour confirmer"><button id=rs>Réinitialiser DracoOS</button></div>';
+sd.onclick=()=>Draco.shutdown();rb.onclick=()=>Draco.restart();rs.onclick=async()=>{if(cf.value!='RESET')return alert('Tapez RESET pour confirmer');await Draco.reset()}},
+'À propos':async()=>{m.innerHTML='<h3>DracoOS 1.5</h3><p>OS simulé en HTML + Flask.<br>Les apps peuvent utiliser l’objet <b>Draco</b> (fichiers, fond d’écran, commandes, notifications…).</p>'}};
+Object.keys(P).forEach((k,j)=>{const d=document.createElement('div');d.textContent=k;d.onclick=()=>{[...n.children].forEach(x=>x.classList.remove('s'));d.classList.add('s');P[k]()};n.appendChild(d);if(!j)d.click()});
+</script></template>
+
+<template id="app-store"><style>body{padding:14px;overflow:auto;height:100vh}input,textarea{width:100%;margin:4px 0}textarea{height:200px;font-family:monospace}</style>
+<h3 style="margin-top:0">Installer une app HTML</h3><input id="n" placeholder="Nom"><input id="i" placeholder="Icône (emoji)" maxlength="4"><textarea id="h" placeholder="Code HTML complet de l’app. L’objet Draco est disponible : Draco.fs_read, Draco.fs_write, Draco.wallpaper, Draco.cmd_add…"></textarea>
+<input type="file" id="f" accept=".html,.htm"><button id="b">Installer</button> <span id="r"></span><h3>Apps installées</h3><div id="l"></div>
+<script>
+f.onchange=async()=>{h.value=await f.files[0].text();if(!n.value)n.value=f.files[0].name.replace(/\.\w+$/,'')};
+b.onclick=async()=>{if(!n.value||!h.value)return r.textContent='Nom et code requis';await Draco.install({id:n.value.toLowerCase().replace(/\W+/g,'-'),n:n.value,i:i.value||'🧩',h:h.value});r.textContent='Installée ✔';list()};
+async function list(){const a=(await Draco.apps()).filter(x=>x.inst);l.innerHTML='';a.forEach(x=>{const d=document.createElement('div');d.textContent=x.i+' '+x.n+' ';const k=document.createElement('button');k.textContent='Retirer';k.onclick=async()=>{await Draco.uninstall(x.id);list()};d.appendChild(k);l.appendChild(d)})}list();
+</script></template>
+
+<template id="app-python"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:6px;display:flex;gap:6px;align-items:center}#cd{flex:1.4;resize:none;border-radius:0;font:14px Consolas,monospace;tab-size:4;white-space:pre}#o{flex:1;margin:0;padding:8px;background:#0c0c0c;color:#ddd;overflow:auto;font:13px Consolas,monospace;white-space:pre-wrap;user-select:text}.e{color:#f77}</style>
+<div id="tl"><button id="run">▶ Exécuter (Ctrl+Entrée)</button><button id="op">📂</button><button id="sv">💾</button><input id="si" placeholder="Entrées input() séparées par |" style="flex:1"><span id="m" style="opacity:.6"></span></div>
+<textarea id="cd" spellcheck="false">print("Bonjour DracoOS !")
+# import draco  ->  draco.read(chemin), draco.write(chemin, texte), draco.ls(chemin)
+</textarea><pre id="o"></pre>
+<script>
+let f=DRACO_ARGS.path;if(f)Draco.fs_read(f).then(t=>{cd.value=t||'';m.textContent=f});
+async function go(){m.textContent='…';o.textContent='';const r=await Draco.python(cd.value,si.value?si.value.split('|').join('\n')+'\n':'');
+if(r.error){o.textContent=r.error;m.textContent='';return}o.textContent=r.out;const e=document.createElement('span');e.className='e';e.textContent=r.err;o.appendChild(e);m.textContent=r.ms+' ms'}
+run.onclick=go;
+op.onclick=async()=>{const n=await Draco.pick({start:'/Documents',ext:['py','txt']});if(!n)return;const t=await Draco.fs_read(n);if(t==null)return m.textContent='Introuvable';f=n;cd.value=t;m.textContent=n};
+sv.onclick=async()=>{if(!f){const n=prompt('Enregistrer sous :','/Documents/script.py');if(!n)return;f=n}const r=await Draco.fs_write(f,cd.value);m.textContent=r&&r.error?r.error:'Enregistré : '+f};
+cd.onkeydown=e=>{if(e.ctrlKey&&e.key=='Enter'){e.preventDefault();go()}else if(e.key=='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ')}};
+</script></template>
+
+<template id="app-calc"><style>body{padding:10px}#d{width:100%;font-size:26px;text-align:right;margin-bottom:8px}#kp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#kp button{padding:14px;font-size:16px}</style>
+<input id="d" readonly><div id="kp"></div>
+<script>
+let e='';['C','(',')','/','7','8','9','*','4','5','6','-','1','2','3','+','0','.','←','='].forEach(k=>{const b=document.createElement('button');b.textContent=k;
+b.onclick=()=>{if(e=='Erreur')e='';if(k=='C')e='';else if(k=='←')e=e.slice(0,-1);else if(k=='='){try{if(/^[0-9+\-*\/(). ]+$/.test(e))e=String(Function('return '+e)())}catch(x){e='Erreur'}}else e+=k;d.value=e};kp.appendChild(b)});
+</script></template>
+
+<template id="app-taskmgr"><style>body{padding:10px}.r{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px}.r:hover{background:#8883}.r span{flex:1}</style>
+<h3 style="margin:0 0 8px">Fenêtres ouvertes</h3><div id="lst"></div><p id="inf" style="opacity:.7"></p>
+<script>
+async function refresh(){const w=await Draco.windows();lst.innerHTML='';w.forEach(x=>{const d=document.createElement('div');d.className='r';const t=document.createElement('span');t.textContent=x.i+' '+x.n;const b=document.createElement('button');b.textContent='Fermer';b.onclick=async()=>{await Draco.kill(x.id);refresh()};d.append(t,b);lst.appendChild(d)});
+const st=await Draco.status();inf.textContent='Disque : '+((st.total-st.free)/1e6).toFixed(1)+' Mo utilisés sur '+(st.total/1e6).toFixed(0)+' Mo'}
+refresh();setInterval(refresh,2000);
+</script></template>
+
+<template id="app-viewer"><style>body{display:flex;flex-direction:column;height:100vh}#st{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;background:#0008}#st>*{max-width:100%;max-height:100%}</style>
+<div style="padding:6px;display:flex;gap:6px;align-items:center"><button id="op">📂 Ouvrir</button><span id="m" style="opacity:.7"></span></div><div id="st"></div>
+<script>
+async function show(p){const c=await Draco.fs_read(p);if(c==null){m.textContent='Introuvable';return}m.textContent=p;const e=p.split('.').pop().toLowerCase();let u=c;if(!u.startsWith('data:')&&e=='svg')u='data:image/svg+xml;utf8,'+encodeURIComponent(c);
+const t=['mp3','wav','ogg','m4a'].includes(e)?'audio':['mp4','webm'].includes(e)?'video':e=='pdf'?'iframe':'img';const el=document.createElement(t);if(t=='audio'||t=='video')el.controls=true;if(t=='iframe')el.style.cssText='width:100%;height:100%;border:0';el.src=u;st.innerHTML='';st.appendChild(el)}
+op.onclick=async()=>{const n=await Draco.pick({start:'/Images'});if(n)show(n)};if(DRACO_ARGS.path)show(DRACO_ARGS.path);
+</script></template>
+
+<template id="app-paint"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}#wr{flex:1;overflow:auto;padding:6px}#cv{background:#fff;border-radius:6px;cursor:crosshair;touch-action:none;display:block}</style>
+<div id="tl"><input type="color" id="col" value="#000000"><input type="range" id="sz" min="1" max="40" value="4"><button id="er">Gomme</button><button id="cl">Effacer</button><button id="op">📂</button><button id="sv">💾 PNG</button><span id="m" style="opacity:.6"></span></div>
+<div id="wr"><canvas id="cv" width="1000" height="600"></canvas></div>
+<script>
+const c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,1000,600);let dr=false,eg=false,px=0,py=0,f=DRACO_ARGS.path;
+cv.onpointerdown=e=>{dr=true;px=e.offsetX;py=e.offsetY;cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!dr)return;c.strokeStyle=eg?'#fff':col.value;c.lineWidth=sz.value;c.lineCap='round';c.beginPath();c.moveTo(px,py);c.lineTo(e.offsetX,e.offsetY);c.stroke();px=e.offsetX;py=e.offsetY};cv.onpointerup=()=>dr=false;
+er.onclick=()=>{eg=!eg;er.textContent=eg?'Pinceau':'Gomme'};cl.onclick=()=>{c.fillStyle='#fff';c.fillRect(0,0,1000,600)};
+async function load(p){const d=await Draco.fs_read(p);if(!d||!d.startsWith('data:image'))return m.textContent='Image introuvable';const i=new Image();i.onload=()=>{c.fillStyle='#fff';c.fillRect(0,0,1000,600);c.drawImage(i,0,0)};i.src=d;f=p;m.textContent=p}
+op.onclick=async()=>{const n=await Draco.pick({start:'/Images',ext:['png','jpe?g','gif','webp','bmp']});if(n)load(n)};
+sv.onclick=async()=>{if(!f){const n=prompt('Enregistrer sous :','/Images/dessin.png');if(!n)return;f=n}const r=await Draco.fs_write(f,cv.toDataURL('image/png'));m.textContent=r&&r.error?r.error:'Enregistré : '+f};
+if(f)load(f);
+</script></template>
+
+<template id="app-htmlstudio"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:6px;display:flex;gap:6px;align-items:center}#bd{flex:1;display:flex;min-height:0}#cd{flex:1;resize:none;border-radius:0;font:13px Consolas,monospace;white-space:pre;tab-size:2}#pv{flex:1;border:0;background:#fff}</style>
+<div id="tl"><button id="op">📂</button><button id="sv">💾</button><button id="ins">🧩 Installer comme app</button><span id="m" style="opacity:.6"></span></div>
+<div id="bd"><textarea id="cd" spellcheck="false"><h1 style="font-family:sans-serif">Hello DracoOS</h1></textarea><iframe id="pv" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>
+<script>
+let f=DRACO_ARGS.path,tm;const upd=()=>pv.srcdoc=cd.value;cd.oninput=()=>{clearTimeout(tm);tm=setTimeout(upd,300)};
+cd.onkeydown=e=>{if(e.key=='Tab'){e.preventDefault();document.execCommand('insertText',false,'  ')}};
+if(f)Draco.fs_read(f).then(t=>{cd.value=t||'';m.textContent=f;upd()});else upd();
+op.onclick=async()=>{const n=await Draco.pick({start:'/Documents',ext:['html?','txt']});if(!n)return;const t=await Draco.fs_read(n);if(t==null)return m.textContent='Introuvable';f=n;cd.value=t;m.textContent=n;upd()};
+sv.onclick=async()=>{if(!f){const n=prompt('Enregistrer sous :','/Documents/page.html');if(!n)return;f=n}const r=await Draco.fs_write(f,cd.value);m.textContent=r&&r.error?r.error:'Enregistré : '+f};
+ins.onclick=async()=>{const n=prompt('Nom de l’app :');if(!n)return;await Draco.install({id:n.toLowerCase().replace(/\W+/g,'-'),n:n,i:'🧩',h:cd.value});Draco.notify('App installée : '+n)};
+</script></template>
+
+<template id="app-clock"><style>body{padding:14px;text-align:center}#t{font-size:44px;margin:6px}h3{margin:16px 0 4px}button{margin:3px}</style>
+<div id="t"></div><h3>Minuteur</h3><div><input id="mn" type="number" min="0" value="1" style="width:60px"> min <button id="ms">▶ Lancer</button><button id="mx">■</button></div><div id="mt" style="font-size:34px;min-height:44px"></div>
+<h3>Chronomètre</h3><div id="sw" style="font-size:34px">0:00.0</div><div><button id="sb">▶ / ⏸</button><button id="sr">↺</button></div>
+<script>
+setInterval(()=>t.textContent=new Date().toLocaleTimeString(),500);
+const fm=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');let end=0,tm;
+ms.onclick=()=>{end=Date.now()+mn.value*60000;clearInterval(tm);tm=setInterval(()=>{const r=Math.max(0,Math.round((end-Date.now())/1000));mt.textContent=fm(r);if(!r){clearInterval(tm);Draco.notify('⏰ Minuteur terminé !')}},250)};
+mx.onclick=()=>{clearInterval(tm);mt.textContent=''};
+let go=false,s0=0,acc=0,cr;const sh=()=>{const q=acc+(go?Date.now()-s0:0);sw.textContent=fm(q/1000)+'.'+Math.floor(q%1000/100)};
+sb.onclick=()=>{if(go){acc+=Date.now()-s0;go=false;clearInterval(cr)}else{go=true;s0=Date.now();cr=setInterval(sh,100)}sh()};
+sr.onclick=()=>{go=false;acc=0;clearInterval(cr);sh()};
+</script></template>
+
+<template id="app-todo"><style>body{padding:12px}.r{display:flex;gap:8px;align-items:center;padding:6px;border-radius:6px}.r:hover{background:#8883}.r span{flex:1}.d span{text-decoration:line-through;opacity:.5}</style>
+<div style="display:flex;gap:6px"><input id="nw" placeholder="Nouvelle tâche" style="flex:1"><button id="ad">Ajouter</button></div><div id="lst" style="margin-top:10px"></div>
+<script>
+const P='/Documents/taches.json';let L=[];const sv=()=>Draco.fs_write(P,JSON.stringify(L));
+function dr(){lst.innerHTML='';L.forEach((x,i)=>{const d=document.createElement('div');d.className='r'+(x.d?' d':'');const c=document.createElement('input');c.type='checkbox';c.checked=x.d;c.onchange=()=>{x.d=c.checked;sv();dr()};
+const s=document.createElement('span');s.textContent=x.t;const b=document.createElement('button');b.textContent='✕';b.onclick=()=>{L.splice(i,1);sv();dr()};d.append(c,s,b);lst.appendChild(d)})}
+ad.onclick=()=>{if(nw.value.trim()){L.push({t:nw.value.trim(),d:false});nw.value='';sv();dr()}};nw.onkeydown=e=>{if(e.key=='Enter')ad.onclick()};
+Draco.fs_read(P).then(t=>{try{L=JSON.parse(t)||[]}catch(e){}dr()});
+</script></template>
+
+<template id="app-music"><style>body{display:flex;flex-direction:column;height:100vh}#pl{flex:1;overflow:auto;padding:6px}.r{padding:8px 10px;border-radius:6px}.r:hover{background:#8883}.r.on{background:var(--acc);color:#fff}#bar{padding:10px;border-top:1px solid #8884}audio{width:100%}</style>
+<div id="pl"></div><div id="bar"><div id="np" style="margin-bottom:6px;opacity:.8">Aucune piste</div><audio id="au" controls></audio></div>
+<script>
+let T=[],cur=-1;
+async function load(){const r=await Draco.fs_ls('/Musique');T=(Array.isArray(r)?r:[]).filter(f=>f.t=='f'&&/\.(mp3|wav|ogg|m4a)$/i.test(f.n)).map(f=>f.n).sort();
+pl.textContent=T.length?'':'Importez des fichiers audio dans /Musique avec l’Explorateur.';T.forEach((n,i)=>{const d=document.createElement('div');d.className='r';d.textContent='🎵 '+n;d.onclick=()=>play(i);pl.appendChild(d)})}
+async function play(i){cur=i;const c=await Draco.fs_read('/Musique/'+T[i]);if(!c)return;au.src=c;au.play();np.textContent='▶ '+T[i];[...pl.children].forEach((e,k)=>e.classList.toggle('on',k==i))}
+au.onended=()=>{if(T.length)play((cur+1)%T.length)};load();
+</script></template>
+
+<template id="app-sheet"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:6px;display:flex;gap:6px;align-items:center}#wr{flex:1;overflow:auto}table{border-collapse:collapse}td,th{border:1px solid #8884;padding:0;min-width:80px}th{background:var(--glass);font-weight:400;padding:2px 6px}td input{width:100%;border:0;border-radius:0;background:transparent;padding:4px 6px}</style>
+<div id="tl"><button id="op">📂</button><button id="sv">💾 CSV</button><span id="m" style="opacity:.6">Formules : =A1+B2*3, =SUM(A1:A5), =AVG(B1:B4)</span></div><div id="wr"><table id="tb"></table></div>
+<script>
+const R=30,C=12,col=i=>String.fromCharCode(65+i);let D={},f=DRACO_ARGS.path;
+function val(k,d){d=d||0;if(d>20)return '#ERR';let v=D[k];if(v==null||v==='')return 0;if(v[0]!='=')return isNaN(+v)?v:+v;
+let e=v.slice(1).toUpperCase().replace(/(SUM|AVG)\(([A-L])(\d+):([A-L])(\d+)\)/g,(_,fn,a,r1,b,r2)=>{const xs=[];for(let c=a.charCodeAt(0);c<=b.charCodeAt(0);c++)for(let r=+r1;r<=+r2;r++){const n=val(String.fromCharCode(c)+r,d+1);if(typeof n=='number')xs.push(n)}const s=xs.reduce((p,q)=>p+q,0);return fn=='SUM'?s:s/(xs.length||1)});
+e=e.replace(/([A-L])(\d+)/g,(_,c,r)=>{const n=val(c+r,d+1);return typeof n=='number'?n:0});
+if(!/^[0-9+\-*\/(). e]+$/.test(e))return '#ERR';try{return Function('return '+e)()}catch(x){return '#ERR'}}
+const fmt=k=>{const v=D[k];if(v==null||v==='')return '';if(v[0]!='=')return v;const n=val(k);return typeof n=='number'?String(Math.round(n*1e6)/1e6):n};
+function build(){tb.innerHTML='<tr><th></th>'+[...Array(C)].map((_,i)=>'<th>'+col(i)+'</th>').join('')+'</tr>';
+for(let r=1;r<=R;r++){const tr=document.createElement('tr');tr.innerHTML='<th>'+r+'</th>';for(let c=0;c<C;c++){const k=col(c)+r,td=document.createElement('td'),i=document.createElement('input');
+i.value=fmt(k);i.dataset.k=k;i.onfocus=()=>i.value=D[k]||'';i.onblur=()=>{D[k]=i.value;refresh()};i.onkeydown=e=>{if(e.key=='Enter')i.blur()};td.appendChild(i);tr.appendChild(td)}tb.appendChild(tr)}}
+function refresh(){document.querySelectorAll('td input').forEach(i=>{if(document.activeElement!==i)i.value=fmt(i.dataset.k)})}
+const toCSV=()=>{const o=[];for(let r=1;r<=R;r++){const row=[];for(let c=0;c<C;c++)row.push((D[col(c)+r]||'').replace(/[,\n]/g,';'));o.push(row.join(','))}return o.join('\n')};
+function fromCSV(t){D={};t.split('\n').forEach((l,r)=>l.split(',').forEach((x,c)=>{if(x&&c<C&&r<R)D[col(c)+(r+1)]=x}))}
+document.getElementById('sv').onclick=async()=>{if(!f){const n=prompt('Enregistrer sous :','/Documents/tableur.csv');if(!n)return;f=n}const r=await Draco.fs_write(f,toCSV());m.textContent=r&&r.error?r.error:'Enregistré : '+f};
+op.onclick=async()=>{const n=await Draco.pick({start:'/Documents',ext:['csv','txt']});if(!n)return;const t=await Draco.fs_read(n);if(t==null)return m.textContent='Introuvable';f=n;fromCSV(t);build();m.textContent=n};
+if(f)Draco.fs_read(f).then(t=>{if(t!=null)fromCSV(t);build()});else build();
+</script></template>
+
+<template id="app-calendar"><style>body{padding:12px}#hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}#hd b{flex:1;text-align:center;text-transform:capitalize}#gr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}#gr div{padding:8px 0;text-align:center;border-radius:8px;cursor:pointer}#gr div:hover{background:#8883}#gr .h{opacity:.6;cursor:default}#gr .t{outline:2px solid var(--acc)}#gr .s{background:var(--acc);color:#fff}#gr .n::after{content:'•';display:block;line-height:6px}textarea{width:100%;height:110px;margin-top:8px;resize:none}</style>
+<div id="hd"><button id="pv">◀</button><b id="ti"></b><button id="nx">▶</button></div><div id="gr"></div><div id="dl" style="margin-top:10px;opacity:.7">Choisissez un jour</div><textarea id="tx" placeholder="Note du jour…"></textarea>
+<script>
+const P='/Documents/agenda.json';let N={},cur=new Date(),sel=null;const key=d=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(),sv=()=>Draco.fs_write(P,JSON.stringify(N));
+function dr(){ti.textContent=cur.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});gr.innerHTML='';['L','M','M','J','V','S','D'].forEach(x=>gr.insertAdjacentHTML('beforeend','<div class=h>'+x+'</div>'));
+const y=cur.getFullYear(),mo=cur.getMonth(),off=(new Date(y,mo,1).getDay()+6)%7,n=new Date(y,mo+1,0).getDate();
+for(let i=0;i<off;i++)gr.appendChild(document.createElement('div'));
+for(let d=1;d<=n;d++){const D=new Date(y,mo,d),k=key(D),e=document.createElement('div');e.textContent=d;if(k==key(new Date()))e.classList.add('t');if(N[k])e.classList.add('n');if(k==sel)e.classList.add('s');
+e.onclick=()=>{sel=k;tx.value=N[k]||'';dl.textContent=D.toLocaleDateString('fr-FR',{dateStyle:'full'});dr()};gr.appendChild(e)}}
+tx.oninput=()=>{if(!sel)return;if(tx.value.trim())N[sel]=tx.value;else delete N[sel];sv();dr()};
+pv.onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);dr()};nx.onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);dr()};
+Draco.fs_read(P).then(t=>{try{N=JSON.parse(t)||{}}catch(e){}dr()});
+</script></template>
+
+<template id="app-search"><style>body{display:flex;flex-direction:column;height:100vh}#tl{padding:8px;display:flex;gap:6px;align-items:center}#q{flex:1}#rs{flex:1;overflow:auto;padding:4px 8px}.r{padding:6px 10px;border-radius:6px}.r:hover{background:#8883}.r small{opacity:.6;display:block}</style>
+<div id="tl"><input id="q" placeholder="Nom de fichier ou texte…"><label><input type="checkbox" id="ct"> contenu</label><button id="go">🔎</button></div><div id="rs">Double-clic sur un résultat pour l’ouvrir.</div>
+<script>
+const ap=n=>/\.html?$/i.test(n)?'htmlstudio':/\.py$/i.test(n)?'python':/\.(png|jpe?g|gif|webp|svg|mp3|wav|ogg|mp4|webm|pdf)$/i.test(n)?'viewer':'notepad';
+async function walk(p,w,acc,t0){if(Date.now()-t0>20000||acc.length>200)return;const l=await Draco.fs_ls(p);if(!Array.isArray(l))return;
+for(const f of l){const fp=(p=='/'?'':p)+'/'+f.n;if(f.n.toLowerCase().includes(w))acc.push([fp,f.t]);
+else if(ct.checked&&f.t=='f'&&f.s<2e6&&/\.(txt|py|html?|css|js|json|md|csv|xml|log)$/i.test(f.n)){const c=await Draco.fs_read(fp);if(c&&c.toLowerCase().includes(w))acc.push([fp,'f'])}
+if(f.t=='d')await walk(fp,w,acc,t0)}}
+go.onclick=async()=>{const w=q.value.toLowerCase().trim();if(!w)return;rs.textContent='Recherche…';const a=[];await walk('/',w,a,Date.now());rs.textContent=a.length?'':'Aucun résultat';
+a.forEach(([p,t])=>{const d=document.createElement('div');d.className='r';d.textContent=(t=='d'?'📁 ':'📄 ')+p.split('/').pop();const s=document.createElement('small');s.textContent=p;d.appendChild(s);d.ondblclick=()=>t=='d'?Draco.open('explorer',{path:p}):Draco.open(ap(p),{path:p});rs.appendChild(d)})};
+q.onkeydown=e=>{if(e.key=='Enter')go.onclick()};q.focus();
+</script></template>
+
+<template id="app-notes"><style>body{padding:10px;overflow:auto;height:100vh}#bar{margin-bottom:10px}#g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.n{border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;box-shadow:0 3px 10px #0004}.n textarea{background:transparent;border:0;color:#222;height:110px;resize:none;padding:0;outline:0!important}.n button{align-self:flex-end;background:#0002;color:#222;border:0;padding:2px 8px}</style>
+<div id="bar"><button id="ad">➕ Nouvelle note</button></div><div id="g"></div>
+<script>
+const P='/Documents/pensebetes.json',C=['#ffe27a','#ffb3c1','#a8e6cf','#a0c4ff','#d4b8ff'];let L=[];const sv=()=>Draco.fs_write(P,JSON.stringify(L));
+function dr(){g.innerHTML='';L.forEach((x,i)=>{const d=document.createElement('div');d.className='n';d.style.background=x.c;const t=document.createElement('textarea');t.value=x.t;t.oninput=()=>{x.t=t.value;sv()};const b=document.createElement('button');b.textContent='🗑';b.onclick=()=>{L.splice(i,1);sv();dr()};d.append(t,b);g.appendChild(d)})}
+ad.onclick=()=>{L.unshift({t:'',c:C[Math.random()*C.length|0]});sv();dr()};
+Draco.fs_read(P).then(t=>{try{L=JSON.parse(t)||[]}catch(e){}dr()});
+</script></template>
+
+<template id="app-snake"><canvas id="c" width="400" height="400" style="display:block;margin:auto;background:#111"></canvas><div id="sc" style="text-align:center;padding:6px"></div>
+<script>
+const x=c.getContext('2d');let s,d,f,n;function init(){s=[{x:10,y:10}];d={x:1,y:0};f={x:5,y:5};n=0}init();
+onkeydown=e=>{const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(m&&!(m[0]==-d.x&&m[1]==-d.y)){d={x:m[0],y:m[1]};e.preventDefault()}};
+onclick=()=>focus();
+setInterval(()=>{const h={x:(s[0].x+d.x+20)%20,y:(s[0].y+d.y+20)%20};if(s.some(p=>p.x==h.x&&p.y==h.y)){init();return}s.unshift(h);
+if(h.x==f.x&&h.y==f.y){n++;f={x:Math.random()*20|0,y:Math.random()*20|0}}else s.pop();
+x.fillStyle='#111';x.fillRect(0,0,400,400);x.fillStyle='#e33';x.fillRect(f.x*20,f.y*20,18,18);x.fillStyle='#3d6';s.forEach(p=>x.fillRect(p.x*20,p.y*20,18,18));sc.textContent='Score : '+n+' (flèches)'},100);
+</script></template>
+
+<script>
+const $=s=>document.querySelector(s),enc=encodeURIComponent;
+let TOK=sessionStorage.tok||'',ME={};
+const api=(u,b)=>fetch('/api/'+u,{method:b?'POST':'GET',headers:{'Content-Type':'application/json','X-Token':TOK},body:b?JSON.stringify(b):undefined}).then(r=>r.json());
+
+const ICONS={
+ explorer:{c:['#65a9ff','#3d62e8'],svg:'<path d="M5 13a3 3 0 0 1 3-3h8l3 3h13a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" fill="#fff" opacity=".94"/><path d="M5 18h30l-3 11a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" fill="#cbe2ff"/>'},
+ settings:{c:['#aab8d8','#66789e'],svg:'<path d="M20 7l2 1 3-2 4 4-2 3 1 2 4 1v6l-4 1-1 2 2 3-4 4-3-2-2 1-1 4h-6l-1-4-2-1-3 2-4-4 2-3-1-2-4-1v-6l4-1 1-2-2-3 4-4 3 2 2-1 1-4h6z" transform="translate(3 1) scale(.85)" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#71809f"/>'},
+ notepad:{c:['#67e8c2','#16a085'],svg:'<path d="M11 5h14l7 7v22H11z" fill="#fff"/><path d="M25 5v8h7" fill="#b8f6e8"/><path d="M16 19h11M16 24h11M16 29h8" stroke="#24a68d" stroke-width="2" stroke-linecap="round"/>'},
+ writer:{c:['#7bb7ff','#3d69d9'],svg:'<path d="M10 5h15l7 7v23H10z" fill="#fff"/><path d="M25 5v8h7" fill="#b8d5ff"/><path d="M15 19h12M15 24h12M15 29h7" stroke="#477de8" stroke-width="2" stroke-linecap="round"/>'},
+ browser:{c:['#55d6d0','#2878d6'],svg:'<circle cx="20" cy="20" r="14" fill="#fff"/><circle cx="20" cy="20" r="10" fill="none" stroke="#319ed0" stroke-width="2"/><path d="M6 20h28M20 6c7 7 7 21 0 28M20 6c-7 7-7 21 0 28" fill="none" stroke="#319ed0" stroke-width="2"/>'},
+ terminal:{c:['#3a485e','#111827'],svg:'<rect x="6" y="8" width="28" height="24" rx="4" fill="#fff"/><path d="M11 15l5 5-5 5M19 26h8" stroke="#2b405c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'},
+ store:{c:['#f7b267','#f07858'],svg:'<path d="M9 14h22l-2 20H11z" fill="#fff"/><path d="M15 15v-3a5 5 0 0 1 10 0v3" fill="none" stroke="#fff" stroke-width="3"/><path d="M15 22l4 4 8-8" fill="none" stroke="#ef8758" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'},
+ snake:{c:['#a7ef79','#35a66b'],svg:'<path d="M8 13a6 6 0 0 1 6-6h7a5 5 0 0 1 5 5v3h-6v-2h-6v5h13a5 5 0 0 1 5 5v3a6 6 0 0 1-6 6h-7a5 5 0 0 1-5-5v-3h6v2h6v-5H13a5 5 0 0 1-5-5z" fill="#fff"/><circle cx="17" cy="11" r="1.4" fill="#35a66b"/><circle cx="25" cy="29" r="1.4" fill="#35a66b"/>'},
+ python:{c:['#75c8ff','#3e78c5'],svg:'<path d="M19 5h6a6 6 0 0 1 6 6v5H16a5 5 0 0 0-5 5v-7a9 9 0 0 1 8-9z" fill="#fff"/><path d="M21 35h-6a6 6 0 0 1-6-6v-5h15a5 5 0 0 0 5-5v7a9 9 0 0 1-8 9z" fill="#d9efff"/><circle cx="22" cy="10" r="1.5" fill="#3e78c5"/><circle cx="18" cy="30" r="1.5" fill="#3e78c5"/>'},
+ calc:{c:['#f9d976','#f39b45'],svg:'<rect x="10" y="5" width="20" height="30" rx="4" fill="#fff"/><rect x="14" y="9" width="12" height="6" rx="1.5" fill="#f2bd58"/><path d="M15 20h3m4 0h3m-10 5h3m4 0h3m-10 5h3m4 0h3" stroke="#e99a45" stroke-width="2.5" stroke-linecap="round"/>'},
+ taskmgr:{c:['#79e5be','#279e88'],svg:'<path d="M8 32V20h5v12zm9 0V10h5v22zm9 0V16h5v16z" fill="#fff"/><path d="M7 16l8-5 6 3 9-8" fill="none" stroke="#e0fff5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'},
+ viewer:{c:['#ff9ab0','#d84f8a'],svg:'<rect x="7" y="8" width="26" height="24" rx="4" fill="#fff"/><circle cx="15" cy="16" r="3" fill="#ffc95c"/><path d="M9 29l8-8 5 5 4-4 5 7z" fill="#ed7ca3"/>'},
+ paint:{c:['#ffb86a','#f06f73'],svg:'<path d="M20 6a14 14 0 1 0 0 28h2a3 3 0 0 0 2-5c-1-2 0-4 3-4h3a4 4 0 0 0 4-4A15 15 0 0 0 20 6z" fill="#fff"/><circle cx="14" cy="15" r="2" fill="#f06f73"/><circle cx="22" cy="12" r="2" fill="#f4b942"/><circle cx="28" cy="18" r="2" fill="#52c6a5"/><circle cx="14" cy="23" r="2" fill="#7aa9ff"/>'},
+ htmlstudio:{c:['#c2a0ff','#7553db'],svg:'<path d="M15 11l-8 9 8 9M25 11l8 9-8 9M22 8l-4 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'},
+ clock:{c:['#9ebcff','#5875d8'],svg:'<circle cx="20" cy="20" r="14" fill="#fff"/><circle cx="20" cy="20" r="10" fill="#dce7ff"/><path d="M20 12v9l6 3" fill="none" stroke="#5473d5" stroke-width="2.5" stroke-linecap="round"/>'},
+ todo:{c:['#8ce3ad','#38a878'],svg:'<rect x="9" y="6" width="22" height="29" rx="4" fill="#fff"/><path d="M14 15l2 2 4-5M14 24l2 2 4-5M23 16h4m-4 9h4" fill="none" stroke="#35a778" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
+ music:{c:['#d4a5ff','#8751d8'],svg:'<path d="M24 7v20a5 5 0 1 1-3-4V13l12-3v13a5 5 0 1 1-3-4V7z" fill="#fff"/>'},
+ sheet:{c:['#8fe3b0','#2a9d70'],svg:'<rect x="9" y="5" width="22" height="30" rx="3" fill="#fff"/><path d="M13 11h14M13 17h14M13 23h14M13 29h14M18 11v18m5-18v18" stroke="#43b67e" stroke-width="1.5"/>'},
+ calendar:{c:['#ff9c9c','#df596c'],svg:'<rect x="7" y="9" width="26" height="25" rx="4" fill="#fff"/><path d="M7 15h26" stroke="#df596c" stroke-width="4"/><path d="M14 5v8m12-8v8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M13 21h4m5 0h4m-13 6h4m5 0h4" stroke="#df596c" stroke-width="2" stroke-linecap="round"/>'},
+ search:{c:['#80d6f8','#4e82d8'],svg:'<circle cx="18" cy="17" r="9" fill="none" stroke="#fff" stroke-width="4"/><path d="M25 24l8 8" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'},
+ notes:{c:['#ffe28c','#e9aa47'],svg:'<path d="M11 5h18a3 3 0 0 1 3 3v24l-6-4-6 4-6-4-6 4V8a3 3 0 0 1 3-3z" fill="#fff"/><path d="M13 13h12m-12 6h12m-12 6h7" stroke="#e7ad48" stroke-width="2" stroke-linecap="round"/>'}
+};
+function appIcon(id,size=42){const v=ICONS[id]||{c:['#8ba2c8','#4d5e7a'],svg:'<rect x="9" y="8" width="22" height="24" rx="5" fill="#fff"/><path d="M14 15h12m-12 6h12m-12 6h8" stroke="#4d5e7a" stroke-width="2" stroke-linecap="round"/>'};return '<svg class="draco-icon" width="'+size+'" height="'+size+'" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g-'+id+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+v.c[0]+'"/><stop offset="1" stop-color="'+v.c[1]+'"/></linearGradient></defs><rect x="1" y="1" width="38" height="38" rx="11" fill="url(#g-'+id+')"/><path d="M8 5h24" stroke="#fff" stroke-opacity=".25" stroke-width="1.5" stroke-linecap="round"/>'+v.svg+'</svg>'}
+function iconForApp(a,size=42){return appIcon(a.id,size)}
+const BUILTIN=[{id:'explorer',n:'Explorateur',i:'📁',d:1},{id:'settings',n:'Paramètres',i:'⚙️',d:1,w:700},{id:'notepad',n:'Bloc-notes',i:'📝',d:1,w:560},{id:'writer',n:'Écrivain',i:'📄',d:1,w:820,hh:600},{id:'browser',n:'Navigateur',i:'🌐',d:1,w:900,hh:600},{id:'terminal',n:'Terminal',i:'⬛',d:1,w:700},{id:'store',n:'Boutique d’apps',i:'🧩',d:1,w:600,hh:560},{id:'snake',n:'Snake',i:'🐍',d:1,w:440,hh:520},{id:'python',n:'Python',i:'🐍',d:1,w:760,hh:560},{id:'calc',n:'Calculatrice',i:'🧮',d:1,w:300,hh:420},{id:'taskmgr',n:'Gestionnaire des tâches',i:'📊',d:1,w:520,hh:420},{id:'viewer',n:'Visionneuse',i:'🖼️',d:1,w:760,hh:540},{id:'paint',n:'Paint',i:'🎨',d:1,w:1040,hh:720},{id:'htmlstudio',n:'HTML Studio',i:'🧪',d:1,w:960,hh:600},{id:'clock',n:'Horloge',i:'🕒',w:340,hh:520},{id:'todo',n:'Tâches',i:'✅',w:420,hh:500},{id:'music',n:'Musique',i:'🎵',w:460,hh:520},{id:'sheet',n:'Tableur',i:'🧾',w:900,hh:560},{id:'calendar',n:'Calendrier',i:'📅',w:420,hh:500},{id:'search',n:'Recherche',i:'🔎',w:540,hh:480},{id:'notes',n:'Pense-bêtes',i:'🗒️',w:520,hh:460}];
+let cfg={},inst=[],wins={},zi=10;
+const BRIDGE="window.Draco=new Proxy({},{get:(_,m)=>(...a)=>new Promise(r=>{const i=Math.random();const h=e=>{if(e.data&&e.data.id===i){removeEventListener('message',h);r(e.data.r)}};addEventListener('message',h);parent.postMessage({id:i,m,a},'*')})});";
+const allApps=()=>BUILTIN.map(a=>({...a,get h(){return $('#app-'+a.id).innerHTML}})).concat(inst.map(a=>({...a,inst:1})));
+const g=n=>getComputedStyle(document.body).getPropertyValue(n);
+function doc(h,args){return '<!doctype html><meta charset=utf-8><style>:root{--bg:'+g('--bg')+';--fg:'+g('--fg')+';--acc:'+g('--acc')+';--glass:'+g('--glass')+'}body{margin:0;font:'+(cfg.fs||14)+'px Segoe UI,system-ui,sans-serif;background:var(--bg);color:var(--fg)}button,input,select,textarea{font:inherit}button{background:var(--glass);color:var(--fg);border:1px solid #8884;border-radius:6px;padding:5px 10px;cursor:pointer}button:hover{background:var(--acc);color:#fff}input,select,textarea{background:var(--glass);color:var(--fg);border:1px solid #8884;border-radius:6px;padding:5px 8px}input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}button{transition:background .12s,transform .08s}button:active{transform:scale(.97)}*{scrollbar-width:thin;scrollbar-color:#8886 transparent}</style><script>window.DRACO_ARGS='+JSON.stringify(args||{}).replace(/</g,'\\u003c')+';'+BRIDGE+'<\/script>'+h}
+function toast(t){NH.push({t,h:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});if(NH.length>50)NH.shift();const tn=$('#tn');if(tn)tn.textContent='🔔●';const d=document.createElement('div');d.textContent=t;$('#toast').appendChild(d);setTimeout(()=>d.remove(),4000)}
+function applyCfg(){document.body.classList.toggle('light',cfg.theme=='light');const T=(c,on)=>document.body.classList.toggle(c,on);T('top',cfg.tbpos=='top');T('tl',cfg.tbalign=='left');T('nt',cfg.transp===false);T('nd',cfg.deskicons===false);document.documentElement.style.setProperty('--acc',cfg.accent||'#4f8cff');document.documentElement.style.filter=cfg.bright&&cfg.bright<100?'brightness('+cfg.bright/100+')':'';setWp(cfg.wallpaper||'#123')}
+const NH=[];let flyT='',sdW=[];
+function openTv(){
+ let o=$('#tv');
+ if(o){o.remove();renderTb();return}
+ o=document.createElement('div');o.id='tv';
+ const c=document.createElement('div');c.className='tvc';
+ c.style.cssText='width:min(760px,94vw);max-width:760px;max-height:82vh;min-height:180px;flex:none';
+ const h=document.createElement('h3');h.textContent='Fenêtres ouvertes';c.appendChild(h);
+ const opened=Object.entries(wins);
+ if(!opened.length){const e=document.createElement('div');e.style.opacity='.65';e.style.padding='18px 4px';e.textContent='Aucune fenêtre ouverte';c.appendChild(e)}
+ opened.forEach(([k,w])=>{
+  const x=document.createElement('div');x.className='tvw';
+  const label=document.createElement('span');label.innerHTML=appIcon(w.a.id,24)+' <span class="ov-title"></span>';label.querySelector('.ov-title').textContent=w.a.n;
+  const close=document.createElement('button');close.textContent='✕';close.title='Fermer cette fenêtre';
+  x.appendChild(label);x.appendChild(close);
+  x.onclick=()=>{w.el.classList.remove('hid');foc(k);o.remove();renderTb()};
+  close.onclick=e=>{e.stopPropagation();w.el.remove();delete wins[k];x.remove();renderTb();if(!Object.keys(wins).length){o.remove()}};
+  c.appendChild(x)
+ });
+ o.appendChild(c);
+ o.onclick=e=>{if(e.target===o){o.remove();renderTb()}};
+ document.body.appendChild(o);renderTb()
+}
+function showFly(t){let f=$('#fly');if(f&&flyT==t){f.remove();flyT='';return}if(f)f.remove();flyT=t;f=document.createElement('div');f.id='fly';f.onclick=e=>e.stopPropagation();document.body.appendChild(f);drawFly()}
+function drawFly(){const f=$('#fly');f.innerHTML='';const A=x=>f.appendChild(x),E=(h,c)=>{const d=document.createElement('div');if(c)d.className=c;d.innerHTML=h;return A(d)},Bt=(t,fn,par)=>{const b=document.createElement('button');b.innerHTML=t;b.onclick=fn;(par||f).appendChild(b);return b};
+if(flyT=='notif'){$('#tn').textContent='🔔';E('<b>Notifications</b>');Bt('Effacer tout',()=>{NH.length=0;drawFly()});if(!NH.length)E('<i style="opacity:.6">Aucune notification</i>');
+NH.slice().reverse().forEach(n=>{const d=E('<small></small><div></div>','fn');d.firstChild.textContent=n.h;d.lastChild.textContent=n.t})}
+else if(flyT=='qs'){E('<b>Paramètres rapides</b>');const r1=E('','fr');
+Bt('🌙/☀️ Thème',()=>H.setting('theme',cfg.theme=='light'?'dark':'light'),r1);Bt('🪟 Transparence',()=>H.setting('transp',cfg.transp===false),r1);Bt('⬆⬇ Barre des tâches',()=>H.setting('tbpos',cfg.tbpos=='top'?'bottom':'top'),r1);
+E('☀ Luminosité');const r=document.createElement('input');r.type='range';r.min=40;r.max=100;r.value=cfg.bright||100;r.oninput=()=>{cfg.bright=+r.value;applyCfg()};r.onchange=()=>H.setting('bright',+r.value);A(r);
+const r2=E('','fr');Bt('⚙️ Paramètres',()=>{open('settings');showFly('qs')},r2);Bt('🔒 Verrouiller',()=>$('#lo').click(),r2);Bt('⏻ Éteindre',()=>power(),r2)}
+else{const d=new Date();E('<div style="font-size:34px;font-weight:300">'+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div><div style="opacity:.7">'+d.toLocaleDateString('fr-FR',{dateStyle:'full'})+'</div>');
+const y=d.getFullYear(),m=d.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();let h='';['L','M','M','J','V','S','D'].forEach(x=>h+='<i>'+x+'</i>');for(let i=0;i<off;i++)h+='<i></i>';for(let i=1;i<=n;i++)h+='<i class="'+(i==d.getDate()?'td':'')+'">'+i+'</i>';E(h,'cg')}}
+const tickLk=()=>{const a=$('#lk');if(!a)return;const d=new Date();a.textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('#ld').textContent=d.toLocaleDateString('fr-FR',{dateStyle:'full'})};tickLk();setInterval(tickLk,1000);
+let wpK='',wpU=null;
+async function setWp(v){if(v===wpK)return;wpK=v;const w=$('#wp');w.innerHTML='';w.style.background='#123';if(wpU){URL.revokeObjectURL(wpU);wpU=null}
+if(v.startsWith('file:')){const p=v.slice(5);let c=await H.fs_read(p);if(wpK!==v)return;if(c==null){toast('Fond introuvable : '+p);return}
+if(!c.startsWith('data:')&&/\.svg$/i.test(p))c='data:image/svg+xml;utf8,'+encodeURIComponent(c);
+if(c.startsWith('data:video')){const b=await(await fetch(c)).blob();if(wpK!==v)return;wpU=URL.createObjectURL(b);const e=document.createElement('video');e.src=wpU;e.loop=e.muted=e.autoplay=e.playsInline=true;w.appendChild(e);e.play().catch(()=>{})}
+else if(c.startsWith('data:image'))w.style.background='url("'+c+'") center/cover';else toast('Format de fond non pris en charge')}
+else w.style.background=/^(https?:|\/|data:)/.test(v)?'url("'+v+'") center/cover':v}
+const H={
+pick:(o={})=>new Promise(res=>{const ov=document.createElement('div');ov.className='pk';ov.style.cssText='position:fixed;inset:0;background:#0007;z-index:10005;display:flex;align-items:center;justify-content:center';
+ov.innerHTML='<div style="width:520px;height:540px;max-width:94vw;max-height:90vh;background:var(--bg);color:var(--fg);border:1px solid #8886;border-radius:12px;display:flex;flex-direction:column;padding:12px;gap:8px;box-shadow:0 20px 60px #000b"><b></b><div class=pp style="opacity:.7"></div><div class=pl style="flex:1;overflow:auto"></div><div class=pvx style="height:124px;display:flex;align-items:center;justify-content:center"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class=pc>Annuler</button><button class=po>Choisir</button></div></div>';
+document.body.appendChild(ov);const q=x=>ov.querySelector(x);q('b').textContent=o.title||'Choisir un fichier';const ex=o.ext?new RegExp('\\.('+o.ext.join('|')+')$','i'):null;let sel=null;
+const done=v=>{ov.remove();res(v)};q('.pc').onclick=()=>done(null);q('.po').onclick=()=>done(sel);
+const pvx=q('.pvx');let tk=0;
+async function showPv(fp){const k=++tk,e=fp.split('.').pop().toLowerCase(),I=/^(png|jpe?g|gif|webp|svg|bmp)$/.test(e),V=/^(mp4|webm)$/.test(e);if(!I&&!V)return;const c=await H.fs_read(fp);if(k!=tk||c==null)return;
+let u=c;if(I&&!u.startsWith('data:'))u='data:image/svg+xml;utf8,'+encodeURIComponent(c);const el=document.createElement(I?'img':'video');el.src=u;if(V){el.muted=el.autoplay=el.loop=true}el.style.cssText='max-height:120px;max-width:100%;border-radius:8px';pvx.textContent='';pvx.appendChild(el)}
+async function go(d){let l=await H.fs_ls(d);if(!Array.isArray(l)){if(d!='/')return go('/');l=[]}sel=null;tk++;pvx.textContent='';q('.pp').textContent=d;const pl=q('.pl');pl.innerHTML='';
+const add=(t,fn,dn)=>{const e=document.createElement('div');e.className='it';e.textContent=t;e.onclick=()=>{[...pl.children].forEach(x=>x.classList.remove('s'));e.classList.add('s');fn()};e.ondblclick=dn;pl.appendChild(e)};
+if(d!='/')add('⬆ ..',()=>{sel=null},()=>go(d.replace(/\/[^\/]+$/,'')||'/'));
+l.filter(f=>f.t=='d'||!ex||ex.test(f.n)).sort((a,b)=>(a.t=='d'?0:1)-(b.t=='d'?0:1)||a.n.localeCompare(b.n)).forEach(f=>{const fp=(d=='/'?'':d)+'/'+f.n;add((f.t=='d'?'📁 ':'📄 ')+f.n,()=>{sel=f.t=='f'?fp:null;if(f.t=='f')showPv(fp);else{tk++;pvx.textContent=''}},()=>f.t=='d'?go(fp):done(fp))})}
+go(o.start||'/')}),
+wallpaper_file:p=>H.setting('wallpaper','file:'+p),
+fs_ls:async p=>{const r=await api('ls?p='+enc(p));return r.error?r:r.items},
+fs_read:async p=>{const r=await api('read?p='+enc(p));return r.error?null:r.c},
+fs_write:(p,c)=>api('write',{p,c}),fs_mkdir:p=>api('mkdir',{p}),fs_rm:p=>api('rm',{p}),fs_mv:(a,b)=>api('mv',{a,b}),
+setting:async(k,v)=>{if(v===undefined)return cfg[k];cfg[k]=v;await api('write',{p:'/System/settings.json',c:JSON.stringify(cfg)});applyCfg();return true},
+wallpaper:v=>H.setting('wallpaper',v),python:(code,stdin)=>api('py',{code,stdin}),resize:mb=>api('resize',{mb}),reset:async()=>{const r=await api('reset',{});if(r.error)return r;TOK=sessionStorage.tok='';location.reload()},
+whoami:async()=>ME,accounts:async()=>(await api('userlist')).items||[],account_add:(n,p)=>api('register',{name:n,password:p}),account_del:n=>api('deluser',{name:n}),passwd:(o,n)=>api('passwd',{old:o,new:n}),restart:()=>power(true),
+windows:async()=>Object.entries(wins).map(([id,w])=>({id,n:w.a.n,i:w.a.i})),kill:async id=>{if(wins[id]){wins[id].el.remove();delete wins[id];renderTb()}return true},notify:t=>toast(t),status:()=>api('status'),open:(id,a)=>open(id,a),shutdown:()=>power(),
+backup:async()=>{const r=await fetch('/api/backup',{headers:{'X-Token':TOK}});if(!r.ok){let e='Sauvegarde impossible';try{e=(await r.json()).error||e}catch(x){}throw e}const b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='DracoOS-sauvegarde-'+new Date().toISOString().replace(/[:.]/g,'-')+'.db';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);return true},
+apps:async()=>allApps().map(({id,n,i,inst})=>({id,n,i,inst:!!inst})),
+install:async a=>{a.id=String(a.id||'app'+Date.now()).replace(/[^\w-]/g,'');const r=await api('write',{p:'/System/Apps/'+a.id+'.json',c:JSON.stringify(a)});await loadApps();return r.error?r:a.id},
+uninstall:async id=>{await api('rm',{p:'/System/Apps/'+String(id).replace(/[^\w-]/g,'')+'.json'});await loadApps();return true},
+cmd_list:async()=>{try{return JSON.parse(await H.fs_read('/System/commands.json'))||[]}catch(e){return[]}},
+cmd_add:async(name,help,code)=>{const l=(await H.cmd_list()).filter(c=>c.name!=name);l.push({name,help,code});return api('write',{p:'/System/commands.json',c:JSON.stringify(l)})}};
+addEventListener('message',async e=>{const d=e.data;if(!d||!H[d.m]||!e.source)return;let r;try{r=await H[d.m](...(d.a||[]))}catch(x){r={error:String(x)}}e.source.postMessage({id:d.id,r},'*')});
+async function loadApps(){inst=[];const l=await H.fs_ls('/System/Apps');if(Array.isArray(l))(await Promise.all(l.map(f=>H.fs_read('/System/Apps/'+f.n)))).forEach(t=>{try{inst.push(JSON.parse(t))}catch(e){}});renderMenu()}
+function renderTb(){document.querySelectorAll('.tbtn').forEach(x=>x.remove());const mk=(t,on,fn)=>{const b=document.createElement('div');b.className='tbtn'+(on?' on':'');b.innerHTML=t;b.onclick=fn;$('#tb').insertBefore(b,$('#tray'));return b};
+mk('<span class="start-mark">✦</span>',$('#sm').classList.contains('o'),e=>{e.stopPropagation();$('#sm').classList.toggle('o');$('#sq').value='';renderMenu();$('#sq').focus();renderTb()}).style.fontSize='20px';
+mk('<span class="overview-mark">▦</span>',!!$('#tv'),e=>{e.stopPropagation();openTv()}).title='Vue des fenêtres';
+Object.entries(wins).forEach(([k,w])=>mk(appIcon(w.a.id,25)+'<span>'+w.a.n+'</span>',!w.el.classList.contains('hid')&&w.el.style.zIndex==zi,()=>{if(w.el.classList.contains('hid')||w.el.style.zIndex<zi){w.el.classList.remove('hid');foc(k)}else w.el.classList.add('hid');renderTb()}))}
+function foc(k){wins[k].el.style.zIndex=++zi;renderTb()}
+function open(id,args){const a=allApps().find(x=>x.id==id);if(!a)return false;$('#sm').classList.remove('o');const k=id+Date.now(),w=document.createElement('div'),o=Object.keys(wins).length%8*28;
+const ww=Math.max(280,Math.min(a.w||760,innerWidth-16)),hh=Math.max(180,Math.min(a.hh||500,innerHeight-66));
+w.className='win';w.style.cssText='left:'+Math.max(4,Math.min(120+o,innerWidth-ww-4))+'px;top:'+Math.max(cfg.tbpos=='top'?62:4,Math.min(40+o,innerHeight-hh-62))+'px;width:'+ww+'px;height:'+hh+'px';
+w.innerHTML='<div class=th><span></span><button class=m>—</button><button class=M>▢</button><button class=x>✕</button></div><iframe allow="fullscreen;gamepad;autoplay;clipboard-write" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock"></iframe>';
+w.querySelector('span').innerHTML=appIcon(a.id,23)+' <span class="wtitle"></span>';w.querySelector('.wtitle').textContent=a.n;w.querySelector('iframe').srcdoc=doc(a.h,args);document.body.appendChild(w);wins[k]={el:w,a};
+const th=w.firstChild;th.onpointerdown=e=>{foc(k);if(e.target.tagName=='BUTTON'||w.classList.contains('max'))return;th.setPointerCapture(e.pointerId);const ox=e.clientX-w.offsetLeft,oy=e.clientY-w.offsetTop;
+th.onpointermove=m=>{w.style.left=m.clientX-ox+'px';w.style.top=Math.max(0,m.clientY-oy)+'px';const W=innerWidth,TH=58,t0=cfg.tbpos=='top'?TH:0,z=m.clientX<6?'l':m.clientX>W-6?'r':m.clientY<6?'m':'';w._z=z;const sn=$('#snap');
+if(z)sn.style.cssText='display:block;left:'+(z=='r'?W/2:0)+'px;top:'+t0+'px;width:'+(z=='m'?W:W/2)+'px;height:'+(innerHeight-TH)+'px';else sn.style.display='none'};
+th.onpointerup=()=>{th.onpointermove=null;$('#snap').style.display='none';const z=w._z;w._z='';if(z=='m')w.classList.add('max');else if(z){const W=innerWidth,t0=cfg.tbpos=='top'?48:0;w.style.cssText+=';left:'+(z=='r'?W/2:0)+'px;top:'+t0+'px;width:'+W/2+'px;height:'+(innerHeight-TH)+'px'}}};
+th.ondblclick=()=>w.classList.toggle('max');w.querySelector('.m').onclick=()=>{w.classList.add('hid');renderTb()};w.querySelector('.M').onclick=()=>w.classList.toggle('max');
+w.querySelector('.x').onclick=()=>{w.remove();delete wins[k];renderTb()};w.onpointerdown=()=>foc(k);foc(k);return true}
+function renderMenu(){const q=$('#sq').value.toLowerCase();$('#sg').innerHTML='';allApps().filter(a=>a.n.toLowerCase().includes(q)).forEach(a=>{const d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.children[0].innerHTML=appIcon(a.id,38);d.children[1].textContent=a.n;d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Ouvrir '+a.n);d.onclick=()=>open(a.id);d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(a.id)}};$('#sg').appendChild(d)})}
+async function power(restart){document.body.insertAdjacentHTML('beforeend','<div id=su><h2>'+(restart?'Redémarrage…':'Enregistrement et extinction…')+'</h2></div>');
+const r=await api('shutdown',{restart:!!restart});if(r.error)return alert(r.error);if(restart)location.reload();else $('#su').innerHTML='<h2>DracoOS est éteint</h2><p>Vous pouvez fermer la fenêtre.</p>'}
+async function start(){$('#su').remove();cfg=JSON.parse(await H.fs_read('/System/settings.json')||'{}');applyCfg();await loadApps();
+BUILTIN.filter(a=>a.d).forEach(a=>{const d=document.createElement('div');d.className='ic';d.innerHTML='<b></b><span></span>';d.children[0].innerHTML=appIcon(a.id,48);d.children[1].textContent=a.n;d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Ouvrir '+a.n);d.ondblclick=()=>open(a.id);d.onkeydown=e=>{if(e.key==='Enter'){open(a.id)}};$('#desk').appendChild(d)});
+$('#desk').onclick=()=>{$('#sm').classList.remove('o');renderTb()};
+$('#tq').onclick=e=>{e.stopPropagation();showFly('qs')};$('#tn').onclick=e=>{e.stopPropagation();showFly('notif')};$('#clk').onclick=e=>{e.stopPropagation();showFly('cal')};
+addEventListener('click',()=>{const f=$('#fly');if(f){f.remove();flyT=''}});
+addEventListener('keydown',e=>{const tag=e.target&&e.target.tagName;const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||e.target.isContentEditable;if(!typing&&e.ctrlKey&&e.key==='Escape'){e.preventDefault();$('#sm').classList.toggle('o');if($('#sm').classList.contains('o')){$('#sq').value='';renderMenu();$('#sq').focus()}renderTb();return}if(!typing&&e.altKey&&e.key==='F4'){const active=Object.entries(wins).filter(([k,w])=>!w.el.classList.contains('hid')).sort((a,b)=>Number(b[1].el.style.zIndex)-Number(a[1].el.style.zIndex))[0];if(active){e.preventDefault();active[1].el.remove();delete wins[active[0]];renderTb();return}}if(e.key=='Escape'){const f=$('#fly');if(f){f.remove();flyT=''}const t=$('#tv');if(t){t.remove();renderTb()}$('#sm').classList.remove('o')}});
+function shortcutHelp(){
+ let o=$('#shortcut-help');if(o){o.remove();return}
+ o=document.createElement('div');o.id='shortcut-help';o.innerHTML='<section><header><div><small>DRACOOS 5.2</small><h2>Raccourcis clavier</h2><p>Gagne du temps avec ces commandes.</p></div><button aria-label="Fermer">✕</button></header><div class="shortcut-grid"><div><kbd>⊞</kbd><span>Ouvrir / fermer le menu Démarrer</span></div><div><kbd>⊞</kbd> + <kbd>E</kbd><span>Ouvrir l’Explorateur</span></div><div><kbd>⊞</kbd> + <kbd>I</kbd><span>Ouvrir les Paramètres</span></div><div><kbd>⊞</kbd> + <kbd>L</kbd><span>Verrouiller la session</span></div><div><kbd>Ctrl</kbd> + <kbd>Échap</kbd><span>Menu Démarrer</span></div><div><kbd>Alt</kbd> + <kbd>Tab</kbd><span>Basculer entre les fenêtres</span></div><div><kbd>Alt</kbd> + <kbd>F4</kbd><span>Fermer la fenêtre active</span></div><div><kbd>Ctrl</kbd> + <kbd>Maj</kbd> + <kbd>Échap</kbd><span>Gestionnaire des tâches</span></div><div><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd><span>Ouvrir le Terminal</span></div><div><kbd>F1</kbd><span>Afficher cette aide</span></div></div><footer>Astuce : commence à taper dans le menu Démarrer pour rechercher une application.</footer></section>';
+ o.style.cssText='position:fixed;inset:0;z-index:20001;background:#050712b8;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:18px;color:var(--fg)';
+ const st=document.createElement('style');st.textContent='#shortcut-help section{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:22px;padding:24px;box-shadow:0 30px 100px #0009}#shortcut-help header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px}#shortcut-help h2{font-size:26px;margin:5px 0}#shortcut-help p{opacity:.7;margin:0}#shortcut-help small{color:var(--acc);font-weight:700;letter-spacing:.12em}#shortcut-help header button{border:1px solid #ffffff20;background:#ffffff0b;color:inherit;border-radius:10px;padding:9px 12px}#shortcut-help .shortcut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#shortcut-help .shortcut-grid>div{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:11px;background:#ffffff08;border:1px solid #ffffff0c;border-radius:11px}#shortcut-help .shortcut-grid span{flex:1 1 100%;font-size:12px;opacity:.82;margin-top:3px}#shortcut-help kbd{font:600 11px Segoe UI,system-ui;padding:4px 7px;border-radius:6px;background:#ffffff12;border:1px solid #ffffff22}#shortcut-help footer{margin-top:18px;padding:12px;border-radius:10px;background:#8b9bff12;font-size:12px;opacity:.85}@media(max-width:560px){ #shortcut-help section{padding:16px}#shortcut-help .shortcut-grid{grid-template-columns:1fr}}';
+ o.appendChild(st);document.body.appendChild(o);o.querySelector('header button').onclick=()=>o.remove();o.onclick=e=>{if(e.target===o)o.remove()}
+}
+addEventListener('keydown',e=>{
+ const tag=e.target&&e.target.tagName,typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||e.target.isContentEditable;
+ if(e.key==='F1'){e.preventDefault();shortcutHelp();return}
+ if(e.key==='Escape'&&$('#shortcut-help')){$('#shortcut-help').remove();return}
+ if(typing)return;
+ const k=e.key.toLowerCase(),meta=e.metaKey||e.key==='Meta';
+ if(e.ctrlKey&&e.shiftKey&&k==='escape'){e.preventDefault();open('taskmgr');return}
+ if(e.ctrlKey&&e.altKey&&k==='t'){e.preventDefault();open('terminal');return}
+ if(meta&&k==='e'){e.preventDefault();open('explorer');return}
+ if(meta&&k==='i'){e.preventDefault();open('settings');return}
+ if(meta&&k==='l'){e.preventDefault();$('#lo').click();return}
+ if(meta&&k==='r'){e.preventDefault();open('terminal');return}
+ if(e.key==='Meta'){e.preventDefault();$('#sm').classList.toggle('o');$('#sq').value='';renderMenu();if($('#sm').classList.contains('o'))$('#sq').focus();renderTb();return}
+ if(e.altKey&&e.key==='Tab'){
+   e.preventDefault();const a=Object.entries(wins).filter(([id,w])=>!w.el.classList.contains('hid'));
+   if(a.length){a.sort((x,y)=>Number(y[1].el.style.zIndex||0)-Number(x[1].el.style.zIndex||0));const active=a.findIndex(([id,w])=>Number(w.el.style.zIndex||0)===zi);const next=a[(active<0?0:active+1)%a.length];if(next){next[1].el.classList.remove('hid');foc(next[0])}}
+ }
+});
+$('#sdk').onclick=()=>{const v=Object.entries(wins).filter(([k,w])=>!w.el.classList.contains('hid'));if(v.length){sdW=v.map(x=>x[0]);v.forEach(([k,w])=>w.el.classList.add('hid'))}else{sdW.forEach(k=>wins[k]&&wins[k].el.classList.remove('hid'));sdW=[]}renderTb()};$('#sq').oninput=renderMenu;$('#sm').onclick=e=>e.stopPropagation();$('#of').onclick=()=>power();$('#lo').onclick=async()=>{await api('logout',{});TOK=sessionStorage.tok='';location.reload()};$('#sq').placeholder='👤 '+ME.name+(ME.admin?' (admin)':'')+' · Rechercher';$('#rs').onclick=()=>power(true);
+const WPX=['png','jpe?g','gif','webp','svg','bmp','mp4','webm'];const cm=document.createElement('div');cm.id='ctx';document.body.appendChild(cm);addEventListener('click',()=>cm.style.display='none');
+$('#wp').oncontextmenu=$('#desk').oncontextmenu=e=>{e.preventDefault();cm.innerHTML='';[['📄 Nouveau fichier texte',async()=>{const n=prompt('Nom du fichier :','nouveau.txt');if(n){const r=await H.fs_write('/Bureau/'+n,'');toast(r.error||'Créé dans Bureau')}}],['📁 Nouveau dossier',async()=>{const n=prompt('Nom du dossier :');if(n)await H.fs_mkdir('/Bureau/'+n)}],['🖼 Changer le fond',async()=>{const p=await H.pick({title:'Choisir un fond (image, GIF, vidéo)',start:'/Images',ext:WPX});if(p)H.wallpaper_file(p)}],['📁 Explorateur',()=>open('explorer')],['🔄 Actualiser',()=>location.reload()]].forEach(([t,f])=>{const d=document.createElement('div');d.textContent=t;d.onclick=f;cm.appendChild(d)});
+cm.style.cssText='display:block;left:'+Math.min(e.clientX,innerWidth-230)+'px;top:'+Math.min(e.clientY,innerHeight-230)+'px'};
+setInterval(()=>{const d=new Date();$('#clk').innerHTML=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'<br>'+d.toLocaleDateString()},1000);renderTb()}
+function setup(){$('#sm2').innerHTML='<p>Premier lancement : quelle taille de disque allouer à DracoOS ?<br>Le fichier occupera tout cet espace et ne changera plus de taille.</p><div><input id=sz type=number min=64 value=1024 style="width:120px"> <select id=un><option value=1>Mo</option><option value=1024 selected>Go</option></select></div><button id=go>Créer le disque</button>';
+$('#sz').value=4;$('#go').onclick=async()=>{const mb=Math.round($('#sz').value*$('#un').value);$('#sm2').textContent='Création du disque de '+mb+' Mo… (peut être long pour les grandes tailles)';const r=await api('init',{mb});if(r.error){$('#sm2').textContent='Erreur : '+r.error;setTimeout(setup,3000)}else gate()}}
+(async()=>{const s=await api('status');if(s.error)$('#sm2').textContent='Erreur disque : '+s.error;else if(!s.init)setup();else gate(s)})();
+async function gate(s){s=s||await api('status');
+if(s.admin_needed)return acct('Créer le compte Administrateur','Premier compte : il sera le seul à pouvoir modifier la taille du disque.');
+if(TOK){const w=await api('whoami');if(w.name){ME=w;return start()}TOK=sessionStorage.tok=''}
+login(s.users)}
+function acct(t,txt){$('#sm2').innerHTML='<p><b>'+t+'</b><br>'+txt+'</p><div><input id="an" placeholder="Nom"> <input id="ap" type="password" placeholder="Mot de passe (4 min.)"></div><p id="ae"></p><button id="ab">Créer</button>';
+$('#ab').onclick=async()=>{const n=$('#an').value.trim(),p=$('#ap').value,r=await api('register',{name:n,password:p});if(r.error)return $('#ae').textContent=r.error;
+const l=await api('login',{name:n,password:p});TOK=sessionStorage.tok=l.token;ME=l;start()}}
+function login(us){$('#sm2').innerHTML='<p>Qui êtes-vous ?</p><div id="ul" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px"></div><div><input id="an" placeholder="Nom"> <input id="ap" type="password" placeholder="Mot de passe"></div><p id="ae"></p><button id="ab">Se connecter</button>';
+(us||[]).forEach(n=>{const b=document.createElement('button');b.textContent='👤 '+n;b.onclick=()=>{$('#an').value=n;$('#ap').focus()};$('#ul').appendChild(b)});
+const go=async()=>{const r=await api('login',{name:$('#an').value.trim(),password:$('#ap').value});if(r.error)return $('#ae').textContent=r.error;TOK=sessionStorage.tok=r.token;ME=r;start()};$('#ab').onclick=go;$('#ap').onkeydown=e=>{if(e.key=='Enter')go()}}
+</script></body></html>
